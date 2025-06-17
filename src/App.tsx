@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,30 +11,56 @@ import Dashboard from "./pages/Dashboard";
 import Inventory from "./pages/Inventory";
 import Categories from "./pages/Categories";
 import NotFound from "./pages/NotFound";
+import Landing from "./pages/Landing";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <SidebarProvider>
-          <div className="min-h-screen flex w-full">
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/inventory" element={<Inventory />} />
-                <Route path="/categories" element={<Categories />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Layout>
-          </div>
-        </SidebarProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const handleSignIn = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleSignOut = () => {
+    setIsAuthenticated(false);
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <Landing onSignIn={handleSignIn} />
+        </TooltipProvider>
+      </QueryClientProvider>
+    );
+  }
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <SidebarProvider>
+            <div className="min-h-screen flex w-full">
+              <Layout onSignOut={handleSignOut}>
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/inventory" element={<Inventory />} />
+                  <Route path="/categories" element={<Categories />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Layout>
+            </div>
+          </SidebarProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
