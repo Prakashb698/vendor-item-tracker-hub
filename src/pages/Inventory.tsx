@@ -1,18 +1,19 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Filter } from "lucide-react";
+import { Plus, Search, Filter, Upload } from "lucide-react";
 import { useInventoryStore } from "@/store/inventoryStore";
 import InventoryItemCard from "@/components/InventoryItemCard";
 import AddItemDialog from "@/components/AddItemDialog";
+import ImportItemsDialog from "@/components/ImportItemsDialog";
 
 const Inventory = () => {
   const { items, categories } = useInventoryStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   const filteredItems = items.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -29,13 +30,23 @@ const Inventory = () => {
           <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
           <p className="text-gray-600">Manage your products and stock levels</p>
         </div>
-        <Button 
-          onClick={() => setIsAddDialogOpen(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Add Item
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setIsImportDialogOpen(true)}
+            variant="outline"
+            className="border-blue-200 text-blue-700 hover:bg-blue-50"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Import Items
+          </Button>
+          <Button 
+            onClick={() => setIsAddDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Item
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -91,18 +102,29 @@ const Inventory = () => {
             }
           </p>
           {!searchTerm && selectedCategory === "all" && (
-            <Button 
-              onClick={() => setIsAddDialogOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Your First Item
-            </Button>
+            <div className="flex justify-center gap-2">
+              <Button 
+                onClick={() => setIsImportDialogOpen(true)}
+                variant="outline"
+                className="border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                Import from Excel/CSV
+              </Button>
+              <Button 
+                onClick={() => setIsAddDialogOpen(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Your First Item
+              </Button>
+            </div>
           )}
         </div>
       )}
 
       <AddItemDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+      <ImportItemsDialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen} />
     </div>
   );
 };
