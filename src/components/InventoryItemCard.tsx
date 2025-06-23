@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, Package, AlertTriangle } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Package, AlertTriangle, MapPin } from "lucide-react";
 import { InventoryItem, useInventoryStore } from "@/store/inventoryStore";
 import { useState } from "react";
 import EditItemDialog from "./EditItemDialog";
@@ -45,6 +45,10 @@ const InventoryItemCard = ({ item }: InventoryItemCardProps) => {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-gray-900 truncate">{item.name}</h3>
                 <p className="text-sm text-gray-500">SKU: {item.sku}</p>
+                <div className="flex items-center gap-1 mt-1">
+                  <MapPin className="h-3 w-3 text-gray-400" />
+                  <span className="text-xs text-gray-500">{item.location}</span>
+                </div>
               </div>
             </div>
             <DropdownMenu>

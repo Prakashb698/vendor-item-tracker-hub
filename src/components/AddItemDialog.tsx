@@ -24,6 +24,7 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
     price: "",
     lowStockThreshold: "",
     sku: "",
+    location: "",
   });
   const [newCategory, setNewCategory] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -48,6 +49,7 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
       price: parseFloat(formData.price),
       lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
       sku: formData.sku || `SKU-${Date.now()}`,
+      location: formData.location || "Not specified",
     });
 
     toast({
@@ -63,6 +65,7 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
       price: "",
       lowStockThreshold: "",
       sku: "",
+      location: "",
     });
     onOpenChange(false);
   };
@@ -219,6 +222,19 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
             </div>
 
             <div>
+              <Label htmlFor="location" className="text-sm font-medium text-gray-700">
+                Location
+              </Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                placeholder="e.g., A1-S2, Warehouse B"
+                className="mt-1"
+              />
+            </div>
+
+            <div className="col-span-2">
               <Label htmlFor="sku" className="text-sm font-medium text-gray-700">
                 SKU
               </Label>

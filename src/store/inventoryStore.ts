@@ -11,6 +11,7 @@ export interface InventoryItem {
   price: number;
   lowStockThreshold: number;
   sku: string;
+  location: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -38,6 +39,7 @@ export const useInventoryStore = create<InventoryStore>()(
           price: 15.99,
           lowStockThreshold: 10,
           sku: 'COF-001',
+          location: 'A1-S2',
           createdAt: new Date('2024-01-15'),
           updatedAt: new Date('2024-01-15'),
         },
@@ -50,6 +52,7 @@ export const useInventoryStore = create<InventoryStore>()(
           price: 12.50,
           lowStockThreshold: 8,
           sku: 'HON-001',
+          location: 'B2-S1',
           createdAt: new Date('2024-01-16'),
           updatedAt: new Date('2024-01-16'),
         },
@@ -62,6 +65,7 @@ export const useInventoryStore = create<InventoryStore>()(
           price: 8.99,
           lowStockThreshold: 15,
           sku: 'SOAP-001',
+          location: 'C1-S3',
           createdAt: new Date('2024-01-17'),
           updatedAt: new Date('2024-01-17'),
         },

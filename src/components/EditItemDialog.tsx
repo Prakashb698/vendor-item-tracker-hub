@@ -25,6 +25,7 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
     price: "",
     lowStockThreshold: "",
     sku: "",
+    location: "",
   });
 
   useEffect(() => {
@@ -37,6 +38,7 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
         price: item.price.toString(),
         lowStockThreshold: item.lowStockThreshold.toString(),
         sku: item.sku,
+        location: item.location || "",
       });
     }
   }, [item]);
@@ -61,6 +63,7 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
       price: parseFloat(formData.price),
       lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
       sku: formData.sku,
+      location: formData.location || "Not specified",
     });
 
     toast({
@@ -178,6 +181,19 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
             </div>
 
             <div>
+              <Label htmlFor="location" className="text-sm font-medium text-gray-700">
+                Location
+              </Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                placeholder="e.g., A1-S2, Warehouse B"
+                className="mt-1"
+              />
+            </div>
+
+            <div className="col-span-2">
               <Label htmlFor="sku" className="text-sm font-medium text-gray-700">
                 SKU
               </Label>

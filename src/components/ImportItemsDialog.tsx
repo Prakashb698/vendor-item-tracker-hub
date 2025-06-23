@@ -51,6 +51,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
       price: parseFloat(row[4]) || 0,
       lowStockThreshold: parseInt(row[5]) || 10,
       sku: row[6] || `SKU-${Date.now()}-${index}`,
+      location: row[7] || 'Not specified',
     }));
 
     setPreviewData(parsedData);
@@ -75,6 +76,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
               price: item.price,
               lowStockThreshold: item.lowStockThreshold,
               sku: item.sku,
+              location: item.location,
             });
             successCount++;
           } else {
@@ -105,10 +107,10 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
   };
 
   const downloadTemplate = () => {
-    const headers = ['Name', 'Description', 'Category', 'Quantity', 'Price', 'Low Stock Threshold', 'SKU'];
+    const headers = ['Name', 'Description', 'Category', 'Quantity', 'Price', 'Low Stock Threshold', 'SKU', 'Location'];
     const sampleData = [
-      ['Premium Coffee Beans', 'High-quality arabica coffee beans', 'Beverages', '25', '15.99', '10', 'COF-001'],
-      ['Organic Honey', 'Pure organic honey from local beekeepers', 'Food', '15', '12.50', '8', 'HON-001']
+      ['Premium Coffee Beans', 'High-quality arabica coffee beans', 'Beverages', '25', '15.99', '10', 'COF-001', 'A1-S2'],
+      ['Organic Honey', 'Pure organic honey from local beekeepers', 'Food', '15', '12.50', '8', 'HON-001', 'B2-S1']
     ];
     
     const csvContent = [headers, ...sampleData].map(row => row.join(',')).join('\n');
@@ -163,7 +165,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
                 <div>
                   <p className="font-medium text-blue-800">File Format Requirements:</p>
                   <ul className="mt-1 space-y-1 text-blue-700">
-                    <li>• Columns: Name, Description, Category, Quantity, Price, Low Stock Threshold, SKU</li>
+                    <li>• Columns: Name, Description, Category, Quantity, Price, Low Stock Threshold, SKU, Location</li>
                     <li>• First row should contain headers</li>
                     <li>• Name field is required for each item</li>
                   </ul>
@@ -185,7 +187,8 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
                         <th className="text-left p-2 border-r">Category</th>
                         <th className="text-left p-2 border-r">Quantity</th>
                         <th className="text-left p-2 border-r">Price</th>
-                        <th className="text-left p-2">SKU</th>
+                        <th className="text-left p-2 border-r">SKU</th>
+                        <th className="text-left p-2">Location</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -195,7 +198,8 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
                           <td className="p-2 border-r">{item.category}</td>
                           <td className="p-2 border-r">{item.quantity}</td>
                           <td className="p-2 border-r">${item.price.toFixed(2)}</td>
-                          <td className="p-2">{item.sku}</td>
+                          <td className="p-2 border-r">{item.sku}</td>
+                          <td className="p-2">{item.location}</td>
                         </tr>
                       ))}
                     </tbody>
