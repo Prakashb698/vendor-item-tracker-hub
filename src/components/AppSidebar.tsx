@@ -1,5 +1,5 @@
 
-import { LayoutDashboard, Package, FolderOpen, Settings } from "lucide-react";
+import { LayoutDashboard, Package, FolderOpen, Settings, FileText } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -17,6 +17,7 @@ const items = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Inventory", url: "/inventory", icon: Package },
   { title: "Categories", url: "/categories", icon: FolderOpen },
+  { title: "Reports", url: "/reports", icon: FileText },
 ];
 
 export function AppSidebar() {
