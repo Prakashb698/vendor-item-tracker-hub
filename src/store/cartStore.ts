@@ -28,6 +28,8 @@ export const useCartStore = create<CartStore>()(
       totalValue: 0,
       
       addItem: (inventoryItem, quantity = 1) => set((state) => {
+        console.log('Adding item to cart:', inventoryItem.name);
+        
         const existingItem = state.items.find(item => item.inventoryItem.id === inventoryItem.id);
         
         let newItems;
@@ -51,6 +53,7 @@ export const useCartStore = create<CartStore>()(
         const totalValue = newItems.reduce((sum, item) => sum + (item.inventoryItem.price * item.quantity), 0);
         
         // Show success toast
+        console.log('Showing toast for:', inventoryItem.name);
         toast({
           title: "Item added successfully!",
           description: `${inventoryItem.name} has been added to your cart.`,
