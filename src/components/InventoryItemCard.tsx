@@ -2,8 +2,9 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, Package, AlertTriangle, MapPin, ShoppingCart } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Package, AlertTriangle, MapPin, ShoppingCart as ShoppingCartIcon } from "lucide-react";
 import { InventoryItem, useInventoryStore } from "@/store/inventoryStore";
 import { useCartStore } from "@/store/cartStore";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,9 +13,12 @@ import EditItemDialog from "./EditItemDialog";
 
 interface InventoryItemCardProps {
   item: InventoryItem;
+  isMultiSelectMode?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
-const InventoryItemCard = ({ item }: InventoryItemCardProps) => {
+const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false, onSelect }: InventoryItemCardProps) => {
   const { user } = useAuth();
   const { deleteItem } = useInventoryStore();
   const { addItem } = useCartStore();
@@ -41,12 +45,25 @@ const InventoryItemCard = ({ item }: InventoryItemCardProps) => {
     addItem(item, 1);
   };
 
+  const cardBorderClass = isMultiSelectMode && isSelected 
+    ? 'border-blue-500 bg-blue-50/30' 
+    : isLowStock 
+      ? 'border-red-200 bg-red-50/30' 
+      : 'border-gray-200 hover:border-gray-300';
+
   return (
     <>
-      <Card className={`bg-white border transition-all duration-200 hover:shadow-lg ${isLowStock ? 'border-red-200 bg-red-50/30' : 'border-gray-200 hover:border-gray-300'}`}>
+      <Card className={`bg-white border transition-all duration-200 hover:shadow-lg ${cardBorderClass}`}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
+              {isMultiSelectMode && (
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={onSelect}
+                  className="mt-1"
+                />
+              )}
               <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${isLowStock ? 'bg-red-100' : 'bg-blue-100'}`}>
                 <Package className={`h-6 w-6 ${isLowStock ? 'text-red-600' : 'text-blue-600'}`} />
               </div>
@@ -60,40 +77,44 @@ const InventoryItemCard = ({ item }: InventoryItemCardProps) => {
               </div>
             </div>
             
-            {user?.role === 'admin' ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <MoreHorizontal className="h-4 w-4" />
+            {!isMultiSelectMode && (
+              <>
+                {user?.role === 'admin' ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-white">
+                      <DropdownMenuItem 
+                        onClick={() => setIsEditDialogOpen(true)}
+                        className="cursor-pointer"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={handleDelete}
+                        className="cursor-pointer text-red-600 focus:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleAddToCart}
+                    disabled={item.quantity === 0}
+                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                  >
+                    <ShoppingCartIcon className="h-4 w-4" />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="bg-white">
-                  <DropdownMenuItem 
-                    onClick={() => setIsEditDialogOpen(true)}
-                    className="cursor-pointer"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={handleDelete}
-                    className="cursor-pointer text-red-600 focus:text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAddToCart}
-                disabled={item.quantity === 0}
-                className="text-blue-600 border-blue-200 hover:bg-blue-50"
-              >
-                <ShoppingCart className="h-4 w-4" />
-              </Button>
+                )}
+              </>
             )}
           </div>
         </CardHeader>
@@ -125,13 +146,13 @@ const InventoryItemCard = ({ item }: InventoryItemCardProps) => {
             </div>
           </div>
 
-          {user?.role === 'customer' && (
+          {user?.role === 'customer' && !isMultiSelectMode && (
             <Button
               onClick={handleAddToCart}
               disabled={item.quantity === 0}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <ShoppingCart className="h-4 w-4 mr-2" />
+              <ShoppingCartIcon className="h-4 w-4 mr-2" />
               {item.quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
             </Button>
           )}

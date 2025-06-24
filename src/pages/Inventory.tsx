@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Filter, Upload, Scan } from "lucide-react";
+import { Plus, Search, Filter, Upload, Scan, Trash2 } from "lucide-react";
 import { useInventoryStore } from "@/store/inventoryStore";
 import InventoryItemCard from "@/components/InventoryItemCard";
 import AddItemDialog from "@/components/AddItemDialog";
@@ -12,12 +12,14 @@ import BarcodeScanner from "@/components/BarcodeScanner";
 import { useZebraScanner } from "@/hooks/useZebraScanner";
 
 const Inventory = () => {
-  const { items, categories } = useInventoryStore();
+  const { items, categories, deleteItem } = useInventoryStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   
   const { isScannerActive, toggleScanner, handleBarcodeScan } = useZebraScanner();
 
@@ -29,6 +31,42 @@ const Inventory = () => {
     return matchesSearch && matchesCategory;
   });
 
+  const handleSelectItem = (itemId: string) => {
+    setSelectedItems(prev => 
+      prev.includes(itemId) 
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedItems.length === filteredItems.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(filteredItems.map(item => item.id));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedItems.length === 0) return;
+    
+    const itemNames = selectedItems
+      .map(id => items.find(item => item.id === id)?.name)
+      .filter(Boolean)
+      .join(', ');
+    
+    if (window.confirm(`Are you sure you want to delete ${selectedItems.length} items: ${itemNames}?`)) {
+      selectedItems.forEach(itemId => deleteItem(itemId));
+      setSelectedItems([]);
+      setIsMultiSelectMode(false);
+    }
+  };
+
+  const toggleMultiSelectMode = () => {
+    setIsMultiSelectMode(!isMultiSelectMode);
+    setSelectedItems([]);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -37,6 +75,13 @@ const Inventory = () => {
           <p className="text-gray-600">Manage your products and stock levels</p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            onClick={toggleMultiSelectMode}
+            variant="outline"
+            className={`border-gray-200 ${isMultiSelectMode ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
+          >
+            {isMultiSelectMode ? 'Cancel Select' : 'Multi Select'}
+          </Button>
           <Button 
             onClick={() => setShowScanner(!showScanner)}
             variant="outline"
@@ -62,6 +107,36 @@ const Inventory = () => {
           </Button>
         </div>
       </div>
+
+      {/* Multi-select actions */}
+      {isMultiSelectMode && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={handleSelectAll}
+              variant="outline"
+              size="sm"
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              {selectedItems.length === filteredItems.length ? 'Deselect All' : 'Select All'}
+            </Button>
+            <span className="text-blue-700 font-medium">
+              {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} selected
+            </span>
+          </div>
+          {selectedItems.length > 0 && (
+            <Button
+              onClick={handleDeleteSelected}
+              variant="destructive"
+              size="sm"
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete Selected ({selectedItems.length})
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* Zebra Scanner */}
       {showScanner && (
@@ -108,7 +183,13 @@ const Inventory = () => {
       {/* Items Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.map((item) => (
-          <InventoryItemCard key={item.id} item={item} />
+          <InventoryItemCard 
+            key={item.id} 
+            item={item} 
+            isMultiSelectMode={isMultiSelectMode}
+            isSelected={selectedItems.includes(item.id)}
+            onSelect={() => handleSelectItem(item.id)}
+          />
         ))}
       </div>
 
