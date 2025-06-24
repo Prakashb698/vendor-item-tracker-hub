@@ -3,32 +3,34 @@ import { Package, ShoppingCart, FileText, CreditCard, User, Bell } from 'lucide-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCartStore } from '@/store/cartStore';
 
 const CustomerPortal = () => {
   const { user } = useAuth();
+  const { totalItems, totalValue } = useCartStore();
 
   const customerStats = [
     {
-      title: 'Active Orders',
-      value: '12',
-      description: 'In progress',
+      title: 'Cart Items',
+      value: totalItems.toString(),
+      description: 'Items in cart',
       icon: ShoppingCart,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
+    },
+    {
+      title: 'Cart Value',
+      value: `$${totalValue.toFixed(2)}`,
+      description: 'Total cart value',
+      icon: CreditCard,
+      color: 'text-green-600',
+      bgColor: 'bg-green-100',
     },
     {
       title: 'Products',
       value: '284',
       description: 'In catalog',
       icon: Package,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
-    },
-    {
-      title: 'Monthly Spend',
-      value: '$2,456',
-      description: 'This month',
-      icon: CreditCard,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
     },
@@ -43,10 +45,10 @@ const CustomerPortal = () => {
   ];
 
   const recentActivity = [
-    { action: 'Order #1234 shipped', time: '2 hours ago', type: 'success' },
+    { action: 'Item added to cart', time: '2 hours ago', type: 'success' },
     { action: 'Inventory updated', time: '4 hours ago', type: 'info' },
-    { action: 'Payment processed', time: '1 day ago', type: 'success' },
-    { action: 'New product added', time: '2 days ago', type: 'info' },
+    { action: 'Order placed', time: '1 day ago', type: 'success' },
+    { action: 'New product available', time: '2 days ago', type: 'info' },
   ];
 
   return (
@@ -105,7 +107,7 @@ const CustomerPortal = () => {
             </Button>
             <Button className="w-full justify-start" variant="outline">
               <ShoppingCart className="h-4 w-4 mr-2" />
-              Place New Order
+              View Shopping Cart
             </Button>
             <Button className="w-full justify-start" variant="outline">
               <FileText className="h-4 w-4 mr-2" />

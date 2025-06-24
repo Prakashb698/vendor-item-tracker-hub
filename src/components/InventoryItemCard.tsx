@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, Package, AlertTriangle, MapPin } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Package, AlertTriangle, MapPin, ShoppingCart } from "lucide-react";
 import { InventoryItem, useInventoryStore } from "@/store/inventoryStore";
+import { useCartStore } from "@/store/cartStore";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import EditItemDialog from "./EditItemDialog";
 
@@ -13,7 +15,9 @@ interface InventoryItemCardProps {
 }
 
 const InventoryItemCard = ({ item }: InventoryItemCardProps) => {
+  const { user } = useAuth();
   const { deleteItem } = useInventoryStore();
+  const { addItem } = useCartStore();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   const isLowStock = item.quantity <= item.lowStockThreshold;
@@ -31,6 +35,10 @@ const InventoryItemCard = ({ item }: InventoryItemCardProps) => {
     if (window.confirm('Are you sure you want to delete this item?')) {
       deleteItem(item.id);
     }
+  };
+
+  const handleAddToCart = () => {
+    addItem(item, 1);
   };
 
   return (
@@ -51,29 +59,42 @@ const InventoryItemCard = ({ item }: InventoryItemCardProps) => {
                 </div>
               </div>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white">
-                <DropdownMenuItem 
-                  onClick={() => setIsEditDialogOpen(true)}
-                  className="cursor-pointer"
-                >
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={handleDelete}
-                  className="cursor-pointer text-red-600 focus:text-red-600"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            
+            {user?.role === 'admin' ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-white">
+                  <DropdownMenuItem 
+                    onClick={() => setIsEditDialogOpen(true)}
+                    className="cursor-pointer"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={handleDelete}
+                    className="cursor-pointer text-red-600 focus:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAddToCart}
+                disabled={item.quantity === 0}
+                className="text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                <ShoppingCart className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </CardHeader>
         
@@ -104,6 +125,17 @@ const InventoryItemCard = ({ item }: InventoryItemCardProps) => {
             </div>
           </div>
 
+          {user?.role === 'customer' && (
+            <Button
+              onClick={handleAddToCart}
+              disabled={item.quantity === 0}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              {item.quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+            </Button>
+          )}
+
           <div className="pt-2 border-t border-gray-100">
             <div className="text-xs text-gray-500">
               Last updated: {new Date(item.updatedAt).toLocaleDateString()}
@@ -112,11 +144,13 @@ const InventoryItemCard = ({ item }: InventoryItemCardProps) => {
         </CardContent>
       </Card>
 
-      <EditItemDialog 
-        item={item}
-        open={isEditDialogOpen} 
-        onOpenChange={setIsEditDialogOpen} 
-      />
+      {user?.role === 'admin' && (
+        <EditItemDialog 
+          item={item}
+          open={isEditDialogOpen} 
+          onOpenChange={setIsEditDialogOpen} 
+        />
+      )}
     </>
   );
 };
