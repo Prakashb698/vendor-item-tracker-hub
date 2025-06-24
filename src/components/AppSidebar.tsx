@@ -1,5 +1,4 @@
-
-import { LayoutDashboard, Package, FolderOpen, Settings, FileText } from "lucide-react";
+import { LayoutDashboard, Package, FolderOpen, Settings, FileText, DollarSign } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -18,6 +17,7 @@ const items = [
   { title: "Inventory", url: "/inventory", icon: Package },
   { title: "Categories", url: "/categories", icon: FolderOpen },
   { title: "Reports", url: "/reports", icon: FileText },
+  { title: "Pricing", url: "/pricing", icon: DollarSign },
 ];
 
 export function AppSidebar() {
