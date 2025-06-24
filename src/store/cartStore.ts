@@ -1,7 +1,7 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { InventoryItem } from './inventoryStore';
+import { toast } from '@/hooks/use-toast';
 
 export interface CartItem {
   id: string;
@@ -49,6 +49,12 @@ export const useCartStore = create<CartStore>()(
         
         const totalItems = newItems.reduce((sum, item) => sum + item.quantity, 0);
         const totalValue = newItems.reduce((sum, item) => sum + (item.inventoryItem.price * item.quantity), 0);
+        
+        // Show success toast
+        toast({
+          title: "Item added successfully!",
+          description: `${inventoryItem.name} has been added to your cart.`,
+        });
         
         return { items: newItems, totalItems, totalValue };
       }),
