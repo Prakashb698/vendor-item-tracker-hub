@@ -3,13 +3,15 @@ import { LogOut } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { AppSidebar } from "./AppSidebar";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface LayoutProps {
   children: React.ReactNode;
-  onSignOut: () => void;
 }
 
-const Layout = ({ children, onSignOut }: LayoutProps) => {
+const Layout = ({ children }: LayoutProps) => {
+  const { user, signOut } = useAuth();
+
   return (
     <>
       <AppSidebar />
@@ -17,14 +19,19 @@ const Layout = ({ children, onSignOut }: LayoutProps) => {
         <header className="h-16 flex items-center justify-between border-b bg-white px-6 shadow-sm">
           <div className="flex items-center gap-4">
             <SidebarTrigger className="text-gray-600 hover:text-gray-900" />
-            <h1 className="text-xl font-semibold text-gray-900">Inventory Management</h1>
+            <h1 className="text-xl font-semibold text-gray-900">
+              {user?.role === 'admin' ? 'Admin Panel' : 'Customer Portal'}
+            </h1>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Local Vendor Dashboard</span>
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+              <p className="text-xs text-gray-500">{user?.businessName}</p>
+            </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={onSignOut}
+              onClick={signOut}
               className="flex items-center gap-2"
             >
               <LogOut className="h-4 w-4" />

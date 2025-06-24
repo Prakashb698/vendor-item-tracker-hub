@@ -1,29 +1,35 @@
-
 import { useState } from "react";
 import { Eye, EyeOff, Package, BarChart3, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface LandingProps {
-  onSignIn: () => void;
-}
-
-const Landing = ({ onSignIn }: LandingProps) => {
+const Landing = () => {
+  const { signIn, signUp, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
     confirmPassword: "",
-    businessName: ""
+    businessName: "",
+    role: "customer" as "admin" | "customer"
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate authentication
-    onSignIn();
+    try {
+      if (isSignUp) {
+        await signUp(formData.email, formData.password, formData.businessName, formData.role);
+      } else {
+        await signIn(formData.email, formData.password);
+      }
+    } catch (error) {
+      console.error('Authentication error:', error);
+    }
   };
 
   const features = [
@@ -61,7 +67,7 @@ const Landing = ({ onSignIn }: LandingProps) => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">StockTracker</h1>
-                <p className="text-sm text-gray-500">Vendor Edition</p>
+                <p className="text-sm text-gray-500">Multi-Portal Edition</p>
               </div>
             </div>
           </div>
@@ -126,18 +132,33 @@ const Landing = ({ onSignIn }: LandingProps) => {
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   {isSignUp && (
-                    <div className="space-y-2">
-                      <Label htmlFor="businessName">Business Name</Label>
-                      <Input
-                        id="businessName"
-                        type="text"
-                        placeholder="Your business name"
-                        value={formData.businessName}
-                        onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                        required={isSignUp}
-                        className="h-11"
-                      />
-                    </div>
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="businessName">Business Name</Label>
+                        <Input
+                          id="businessName"
+                          type="text"
+                          placeholder="Your business name"
+                          value={formData.businessName}
+                          onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
+                          required={isSignUp}
+                          className="h-11"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="role">Account Type</Label>
+                        <Select value={formData.role} onValueChange={(value: "admin" | "customer") => setFormData({ ...formData, role: value })}>
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Select account type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="customer">Customer Portal</SelectItem>
+                            <SelectItem value="admin">Administrator</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
                   )}
                   
                   <div className="space-y-2">
@@ -190,8 +211,8 @@ const Landing = ({ onSignIn }: LandingProps) => {
                     </div>
                   )}
 
-                  <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700">
-                    {isSignUp ? "Create Account" : "Sign In"}
+                  <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700" disabled={loading}>
+                    {loading ? 'Loading...' : (isSignUp ? "Create Account" : "Sign In")}
                   </Button>
                 </form>
 
