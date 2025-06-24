@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { ShoppingCart, Plus, Minus, X, Package } from 'lucide-react';
+import { ShoppingCart as ShoppingCartIcon, Plus, Minus, X, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,9 +23,9 @@ const ShoppingCart = () => {
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button variant="outline" className="relative">
-          <ShoppingCart className="h-4 w-4" />
+          <ShoppingCartIcon className="h-4 w-4" />
           {totalItems > 0 && (
-            <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
+            <Badge variant="secondary" className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
               {totalItems}
             </Badge>
           )}
@@ -35,7 +35,7 @@ const ShoppingCart = () => {
       <SheetContent className="w-full sm:max-w-lg">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
+            <ShoppingCartIcon className="h-5 w-5" />
             Shopping Cart ({totalItems} items)
           </SheetTitle>
         </SheetHeader>

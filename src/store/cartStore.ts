@@ -63,7 +63,11 @@ export const useCartStore = create<CartStore>()(
       
       updateQuantity: (itemId, quantity) => set((state) => {
         if (quantity <= 0) {
-          return get().removeItem(itemId);
+          const newItems = state.items.filter(item => item.id !== itemId);
+          const totalItems = newItems.reduce((sum, item) => sum + item.quantity, 0);
+          const totalValue = newItems.reduce((sum, item) => sum + (item.inventoryItem.price * item.quantity), 0);
+          
+          return { items: newItems, totalItems, totalValue };
         }
         
         const newItems = state.items.map(item =>
