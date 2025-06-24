@@ -1,12 +1,15 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Filter, Upload } from "lucide-react";
+import { Plus, Search, Filter, Upload, Scan } from "lucide-react";
 import { useInventoryStore } from "@/store/inventoryStore";
 import InventoryItemCard from "@/components/InventoryItemCard";
 import AddItemDialog from "@/components/AddItemDialog";
 import ImportItemsDialog from "@/components/ImportItemsDialog";
+import BarcodeScanner from "@/components/BarcodeScanner";
+import { useZebraScanner } from "@/hooks/useZebraScanner";
 
 const Inventory = () => {
   const { items, categories } = useInventoryStore();
@@ -14,6 +17,9 @@ const Inventory = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
+  
+  const { isScannerActive, toggleScanner, handleBarcodeScan } = useZebraScanner();
 
   const filteredItems = items.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,6 +38,14 @@ const Inventory = () => {
         </div>
         <div className="flex gap-2">
           <Button 
+            onClick={() => setShowScanner(!showScanner)}
+            variant="outline"
+            className="border-purple-200 text-purple-700 hover:bg-purple-50"
+          >
+            <Scan className="h-4 w-4 mr-2" />
+            {showScanner ? 'Hide Scanner' : 'Zebra Scanner'}
+          </Button>
+          <Button 
             onClick={() => setIsImportDialogOpen(true)}
             variant="outline"
             className="border-blue-200 text-blue-700 hover:bg-blue-50"
@@ -48,6 +62,15 @@ const Inventory = () => {
           </Button>
         </div>
       </div>
+
+      {/* Zebra Scanner */}
+      {showScanner && (
+        <BarcodeScanner
+          onScan={handleBarcodeScan}
+          isActive={isScannerActive}
+          onToggle={toggleScanner}
+        />
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg shadow-sm border">
