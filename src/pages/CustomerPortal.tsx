@@ -4,11 +4,14 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/store/cartStore';
 import { useNavigate } from 'react-router-dom';
+import ShoppingCartComponent from '@/components/ShoppingCart';
+import { useState } from 'react';
 
 const CustomerPortal = () => {
   const { user } = useAuth();
   const { totalItems, totalValue } = useCartStore();
   const navigate = useNavigate();
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const handleQuickAction = (action: string) => {
     switch (action) {
@@ -16,8 +19,7 @@ const CustomerPortal = () => {
         navigate('/inventory');
         break;
       case 'cart':
-        // Toggle cart or navigate to cart page if it exists
-        console.log('Opening shopping cart...');
+        setIsCartOpen(true);
         break;
       case 'reports':
         navigate('/reports');
@@ -180,6 +182,11 @@ const CustomerPortal = () => {
             </div>
           </CardContent>
         </Card>
+      </div>
+      
+      {/* Shopping Cart Component */}
+      <div style={{ display: 'none' }}>
+        <ShoppingCartComponent />
       </div>
     </div>
   );
