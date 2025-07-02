@@ -5,13 +5,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/store/cartStore';
 import { useNavigate } from 'react-router-dom';
 import ShoppingCartComponent from '@/components/ShoppingCart';
-import { useState } from 'react';
 
 const CustomerPortal = () => {
   const { user } = useAuth();
   const { totalItems, totalValue } = useCartStore();
   const navigate = useNavigate();
-  const [isCartOpen, setIsCartOpen] = useState(false);
 
   const handleQuickAction = (action: string) => {
     switch (action) {
@@ -19,7 +17,9 @@ const CustomerPortal = () => {
         navigate('/inventory');
         break;
       case 'cart':
-        setIsCartOpen(true);
+        // The ShoppingCart component will handle its own opening state
+        // We just need to render it normally and let it handle the trigger
+        console.log('Cart action triggered - ShoppingCart component will handle display');
         break;
       case 'reports':
         navigate('/reports');
@@ -91,6 +91,8 @@ const CustomerPortal = () => {
             <User className="h-4 w-4 mr-2" />
             Profile
           </Button>
+          {/* Add Shopping Cart Button in Header */}
+          <ShoppingCartComponent />
         </div>
       </div>
 
@@ -132,14 +134,9 @@ const CustomerPortal = () => {
               <Package className="h-4 w-4 mr-2" />
               View Inventory
             </Button>
-            <Button 
-              className="w-full justify-start" 
-              variant="outline"
-              onClick={() => handleQuickAction('cart')}
-            >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              View Shopping Cart
-            </Button>
+            <div className="w-full">
+              <ShoppingCartComponent />
+            </div>
             <Button 
               className="w-full justify-start" 
               variant="outline"
@@ -182,11 +179,6 @@ const CustomerPortal = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
-      
-      {/* Shopping Cart Component */}
-      <div style={{ display: 'none' }}>
-        <ShoppingCartComponent />
       </div>
     </div>
   );
