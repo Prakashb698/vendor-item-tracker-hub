@@ -21,39 +21,19 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { amount, items } = await req.json();
+    const { amount, items, userEmail } = await req.json();
     
-    // Create Supabase client with anon key for user auth
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("No authorization header provided");
+    if (!userEmail) {
+      throw new Error("User email is required");
     }
     
-    const token = authHeader.replace("Bearer ", "");
-    const { data, error: authError } = await supabaseClient.auth.getUser(token);
-    
-    if (authError || !data.user) {
-      logStep("Authentication failed", { error: authError?.message });
-      throw new Error("User not authenticated");
-    }
-    
-    const user = data.user;
-    if (!user.email) {
-      throw new Error("User email not available");
-    }
-    
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User email provided", { email: userEmail });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2023-10-16" 
     });
     
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
@@ -62,7 +42,7 @@ serve(async (req) => {
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      customer_email: customerId ? undefined : user.email,
+      customer_email: customerId ? undefined : userEmail,
       line_items: [
         {
           price_data: {

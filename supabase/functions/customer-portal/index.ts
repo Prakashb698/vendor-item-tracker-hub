@@ -25,34 +25,16 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    // Create Supabase client with anon key for user auth
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
-    );
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("No authorization header provided");
+    const { userEmail } = await req.json();
+    
+    if (!userEmail) {
+      throw new Error("User email is required");
     }
     
-    const token = authHeader.replace("Bearer ", "");
-    const { data, error: authError } = await supabaseClient.auth.getUser(token);
-    
-    if (authError || !data.user) {
-      logStep("Authentication failed", { error: authError?.message });
-      throw new Error("User not authenticated");
-    }
-    
-    const user = data.user;
-    if (!user.email) {
-      throw new Error("User email not available");
-    }
-    
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User email provided", { email: userEmail });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     if (customers.data.length === 0) {
       throw new Error("No Stripe customer found for this user");
     }

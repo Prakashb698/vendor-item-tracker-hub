@@ -71,7 +71,9 @@ const SubscriptionManager = () => {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('check-subscription');
+      const { data, error } = await supabase.functions.invoke('check-subscription', {
+        body: { userEmail: user.email }
+      });
       if (error) throw error;
       setSubscriptionData(data);
     } catch (error) {
@@ -92,7 +94,7 @@ const SubscriptionManager = () => {
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { mode: 'subscription', tier }
+        body: { mode: 'subscription', tier, userEmail: user.email }
       });
       if (error) throw error;
       
@@ -115,7 +117,9 @@ const SubscriptionManager = () => {
     
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('customer-portal');
+      const { data, error } = await supabase.functions.invoke('customer-portal', {
+        body: { userEmail: user.email }
+      });
       if (error) throw error;
       
       // Open Stripe customer portal in a new tab

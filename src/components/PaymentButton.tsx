@@ -49,7 +49,8 @@ const PaymentButton = ({
       const { data, error } = await supabase.functions.invoke('create-payment', {
         body: { 
           amount: paymentAmount,
-          items: paymentItems
+          items: paymentItems,
+          userEmail: user.email
         }
       });
       
