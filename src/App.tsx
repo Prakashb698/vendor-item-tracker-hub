@@ -17,6 +17,8 @@ import Landing from "./pages/Landing";
 import Pricing from "./pages/Pricing";
 import AdminDashboard from "./pages/AdminDashboard";
 import CustomerPortal from "./pages/CustomerPortal";
+import PaymentSuccess from "./pages/PaymentSuccess";
+import PaymentCancelled from "./pages/PaymentCancelled";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -101,6 +103,8 @@ const AppContent = () => {
               
               {/* Common Routes */}
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/payment-success" element={<PaymentSuccess />} />
+              <Route path="/payment-cancelled" element={<PaymentCancelled />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>

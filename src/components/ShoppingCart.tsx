@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useCartStore } from '@/store/cartStore';
+import PaymentButton from './PaymentButton';
 
 interface ShoppingCartProps {
   showLabel?: boolean;
@@ -17,9 +18,13 @@ const ShoppingCart = ({ showLabel = false, className }: ShoppingCartProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const handlePlaceOrder = () => {
-    // This would typically send the order to a backend
     console.log('Placing order:', items);
     alert('Order placed successfully! (This is a demo - order would be sent to backend)');
+    clearCart();
+    setIsOpen(false);
+  };
+
+  const handlePaymentSuccess = () => {
     clearCart();
     setIsOpen(false);
   };
@@ -126,12 +131,12 @@ const ShoppingCart = ({ showLabel = false, className }: ShoppingCartProps) => {
                 >
                   Clear Cart
                 </Button>
-                <Button
-                  onClick={handlePlaceOrder}
+                <PaymentButton 
+                  onSuccess={handlePaymentSuccess}
                   className="flex-1 bg-blue-600 hover:bg-blue-700"
                 >
-                  Place Order
-                </Button>
+                  Checkout
+                </PaymentButton>
               </div>
             </div>
           )}
