@@ -1,13 +1,34 @@
-
 import { Package, ShoppingCart, FileText, CreditCard, User, Bell } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/store/cartStore';
+import { useNavigate } from 'react-router-dom';
 
 const CustomerPortal = () => {
   const { user } = useAuth();
   const { totalItems, totalValue } = useCartStore();
+  const navigate = useNavigate();
+
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'inventory':
+        navigate('/inventory');
+        break;
+      case 'cart':
+        // Toggle cart or navigate to cart page if it exists
+        console.log('Opening shopping cart...');
+        break;
+      case 'reports':
+        navigate('/reports');
+        break;
+      case 'pricing':
+        navigate('/pricing');
+        break;
+      default:
+        console.log(`Action ${action} not implemented yet`);
+    }
+  };
 
   const customerStats = [
     {
@@ -101,19 +122,35 @@ const CustomerPortal = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start" variant="outline">
+            <Button 
+              className="w-full justify-start" 
+              variant="outline"
+              onClick={() => handleQuickAction('inventory')}
+            >
               <Package className="h-4 w-4 mr-2" />
               View Inventory
             </Button>
-            <Button className="w-full justify-start" variant="outline">
+            <Button 
+              className="w-full justify-start" 
+              variant="outline"
+              onClick={() => handleQuickAction('cart')}
+            >
               <ShoppingCart className="h-4 w-4 mr-2" />
               View Shopping Cart
             </Button>
-            <Button className="w-full justify-start" variant="outline">
+            <Button 
+              className="w-full justify-start" 
+              variant="outline"
+              onClick={() => handleQuickAction('reports')}
+            >
               <FileText className="h-4 w-4 mr-2" />
               Generate Report
             </Button>
-            <Button className="w-full justify-start" variant="outline">
+            <Button 
+              className="w-full justify-start" 
+              variant="outline"
+              onClick={() => handleQuickAction('pricing')}
+            >
               <CreditCard className="h-4 w-4 mr-2" />
               Billing & Payments
             </Button>
