@@ -8,35 +8,57 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const logStep = (step: string, details?: any) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[CREATE-PAYMENT] ${step}${detailsStr}`);
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get("SUPABASE_URL") ?? "",
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    { auth: { persistSession: false } }
-  );
-
   try {
+    logStep("Function started");
+
     const { amount, items } = await req.json();
     
-    const authHeader = req.headers.get("Authorization")!;
+    // Create Supabase client with anon key for user auth
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("No authorization header provided");
+    }
+    
     const token = authHeader.replace("Bearer ", "");
-    const { data } = await supabaseClient.auth.getUser(token);
+    const { data, error: authError } = await supabaseClient.auth.getUser(token);
+    
+    if (authError || !data.user) {
+      logStep("Authentication failed", { error: authError?.message });
+      throw new Error("User not authenticated");
+    }
+    
     const user = data.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
+    if (!user.email) {
+      throw new Error("User email not available");
+    }
+    
+    logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-      apiVersion: "2023-10-16",
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
+      apiVersion: "2023-10-16" 
     });
-
+    
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId;
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
     }
+    logStep("Customer lookup", { customerId });
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -45,7 +67,10 @@ serve(async (req) => {
         {
           price_data: {
             currency: "usd",
-            product_data: { name: "Cart Purchase" },
+            product_data: { 
+              name: "Cart Purchase",
+              description: `Purchase of ${items?.length || 1} items`
+            },
             unit_amount: amount || 4999,
           },
           quantity: 1,
@@ -56,22 +81,16 @@ serve(async (req) => {
       cancel_url: `${req.headers.get("origin")}/payment-cancelled`,
     });
 
-    // Record the order in the database
-    await supabaseClient.from("orders").insert({
-      user_id: user.id,
-      stripe_session_id: session.id,
-      amount: amount || 4999,
-      status: "pending",
-      order_items: items || [],
-      created_at: new Date().toISOString()
-    });
+    logStep("Payment session created", { sessionId: session.id, url: session.url });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR in create-payment", { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
