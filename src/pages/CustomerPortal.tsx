@@ -1,3 +1,4 @@
+
 import { Package, ShoppingCart, FileText, CreditCard, User, Bell } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -135,7 +136,7 @@ const CustomerPortal = () => {
               View Inventory
             </Button>
             <div className="w-full">
-              <ShoppingCartComponent />
+              <ShoppingCartComponent showLabel={true} />
             </div>
             <Button 
               className="w-full justify-start" 

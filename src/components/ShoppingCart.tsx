@@ -7,7 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useCartStore } from '@/store/cartStore';
 
-const ShoppingCart = () => {
+interface ShoppingCartProps {
+  showLabel?: boolean;
+  className?: string;
+}
+
+const ShoppingCart = ({ showLabel = false, className }: ShoppingCartProps) => {
   const { items, totalItems, totalValue, updateQuantity, removeItem, clearCart } = useCartStore();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -22,8 +27,9 @@ const ShoppingCart = () => {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button variant="outline" className="relative">
+        <Button variant="outline" className={`relative ${showLabel ? 'w-full justify-start' : ''} ${className || ''}`}>
           <ShoppingCartIcon className="h-4 w-4" />
+          {showLabel && <span className="ml-2">View Shopping Cart</span>}
           {totalItems > 0 && (
             <Badge variant="secondary" className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
               {totalItems}
