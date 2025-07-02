@@ -1,6 +1,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { logTransaction } from '@/utils/transactionLogger';
 
 export interface InventoryItem {
   id: string;
@@ -24,6 +25,9 @@ interface InventoryStore {
   deleteItem: (id: string) => void;
   addCategory: (category: string) => void;
   deleteCategory: (category: string) => void;
+  adjustStock: (id: string, newQuantity: number, notes?: string) => void;
+  recordSale: (id: string, quantitySold: number, unitPrice?: number, referenceNumber?: string) => void;
+  recordPurchase: (id: string, quantityPurchased: number, unitPrice?: number, referenceNumber?: string) => void;
 }
 
 export const useInventoryStore = create<InventoryStore>()(
@@ -72,29 +76,143 @@ export const useInventoryStore = create<InventoryStore>()(
       ],
       categories: ['Beverages', 'Food', 'Personal Care', 'Electronics', 'Clothing'],
       
-      addItem: (itemData) => set((state) => ({
-        items: [
-          ...state.items,
-          {
-            ...itemData,
-            id: Date.now().toString(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ],
-      })),
+      addItem: (itemData) => set((state) => {
+        const newItem = {
+          ...itemData,
+          id: Date.now().toString(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        // Log transaction for new item
+        logTransaction({
+          itemId: newItem.id,
+          type: 'stock_in',
+          quantity: newItem.quantity,
+          previousQuantity: 0,
+          newQuantity: newItem.quantity,
+          unitPrice: newItem.price,
+          notes: `New item added: ${newItem.name}`
+        });
+
+        return {
+          items: [...state.items, newItem],
+        };
+      }),
       
-      updateItem: (id, updates) => set((state) => ({
-        items: state.items.map((item) =>
-          item.id === id
-            ? { ...item, ...updates, updatedAt: new Date() }
-            : item
-        ),
-      })),
+      updateItem: (id, updates) => set((state) => {
+        const oldItem = state.items.find(item => item.id === id);
+        if (!oldItem) return state;
+
+        const newItem = { ...oldItem, ...updates, updatedAt: new Date() };
+        
+        // Log transaction if quantity changed
+        if (updates.quantity !== undefined && updates.quantity !== oldItem.quantity) {
+          const quantityChange = updates.quantity - oldItem.quantity;
+          logTransaction({
+            itemId: id,
+            type: 'adjustment',
+            quantity: quantityChange,
+            previousQuantity: oldItem.quantity,
+            newQuantity: updates.quantity,
+            unitPrice: newItem.price,
+            notes: `Item updated: quantity adjusted`
+          });
+        }
+
+        return {
+          items: state.items.map((item) =>
+            item.id === id ? newItem : item
+          ),
+        };
+      }),
       
-      deleteItem: (id) => set((state) => ({
-        items: state.items.filter((item) => item.id !== id),
-      })),
+      deleteItem: (id) => set((state) => {
+        const item = state.items.find(item => item.id === id);
+        if (item && item.quantity > 0) {
+          // Log transaction for removing remaining stock
+          logTransaction({
+            itemId: id,
+            type: 'adjustment',
+            quantity: -item.quantity,
+            previousQuantity: item.quantity,
+            newQuantity: 0,
+            notes: `Item deleted: ${item.name}`
+          });
+        }
+
+        return {
+          items: state.items.filter((item) => item.id !== id),
+        };
+      }),
+
+      adjustStock: (id, newQuantity, notes) => {
+        const state = get();
+        const item = state.items.find(item => item.id === id);
+        if (!item) return;
+
+        const quantityChange = newQuantity - item.quantity;
+        
+        // Log the stock adjustment
+        logTransaction({
+          itemId: id,
+          type: 'adjustment',
+          quantity: quantityChange,
+          previousQuantity: item.quantity,
+          newQuantity: newQuantity,
+          unitPrice: item.price,
+          notes: notes || 'Stock adjustment'
+        });
+
+        // Update the item
+        state.updateItem(id, { quantity: newQuantity });
+      },
+
+      recordSale: (id, quantitySold, unitPrice, referenceNumber) => {
+        const state = get();
+        const item = state.items.find(item => item.id === id);
+        if (!item || item.quantity < quantitySold) return;
+
+        const newQuantity = item.quantity - quantitySold;
+        
+        // Log the sale transaction
+        logTransaction({
+          itemId: id,
+          type: 'sale',
+          quantity: -quantitySold,
+          previousQuantity: item.quantity,
+          newQuantity: newQuantity,
+          unitPrice: unitPrice || item.price,
+          referenceNumber: referenceNumber,
+          notes: `Sale: ${quantitySold} units sold`
+        });
+
+        // Update the item quantity
+        state.updateItem(id, { quantity: newQuantity });
+      },
+
+      recordPurchase: (id, quantityPurchased, unitPrice, referenceNumber) => {
+        const state = get();
+        const item = state.items.find(item => item.id === id);
+        if (!item) return;
+
+        const newQuantity = item.quantity + quantityPurchased;
+        
+        // Log the purchase transaction
+        logTransaction({
+          itemId: id,
+          type: 'purchase',
+          quantity: quantityPurchased,
+          previousQuantity: item.quantity,
+          newQuantity: newQuantity,
+          unitPrice: unitPrice || item.price,
+          referenceNumber: referenceNumber,
+          notes: `Purchase: ${quantityPurchased} units received`
+        });
+
+        // Update the item quantity
+        state.updateItem(id, { quantity: newQuantity });
+      },
       
       addCategory: (category) => set((state) => ({
         categories: state.categories.includes(category)

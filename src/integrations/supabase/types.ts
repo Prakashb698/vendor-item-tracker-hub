@@ -81,6 +81,54 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          new_quantity: number
+          notes: string | null
+          previous_quantity: number
+          quantity: number
+          reference_number: string | null
+          total_value: number | null
+          transaction_type: string
+          unit_price: number | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          new_quantity: number
+          notes?: string | null
+          previous_quantity: number
+          quantity: number
+          reference_number?: string | null
+          total_value?: number | null
+          transaction_type: string
+          unit_price?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          new_quantity?: number
+          notes?: string | null
+          previous_quantity?: number
+          quantity?: number
+          reference_number?: string | null
+          total_value?: number | null
+          transaction_type?: string
+          unit_price?: number | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
