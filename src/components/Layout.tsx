@@ -1,10 +1,9 @@
-
 import { LogOut } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/contexts/AuthContext";
-import ShoppingCart from "./ShoppingCart";
+import PurchaseQueue from "./PurchaseQueue";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -25,7 +24,7 @@ const Layout = ({ children }: LayoutProps) => {
             </h1>
           </div>
           <div className="flex items-center gap-4">
-            {user?.role === 'customer' && <ShoppingCart />}
+            {user?.role === 'customer' && <PurchaseQueue />}
             <div className="text-right">
               <p className="text-sm font-medium text-gray-900">{user?.name}</p>
               <p className="text-xs text-gray-500">{user?.businessName}</p>

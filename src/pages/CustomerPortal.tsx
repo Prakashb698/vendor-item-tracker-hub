@@ -1,15 +1,15 @@
-
 import { Package, ShoppingCart, FileText, CreditCard, User, Bell } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCartStore } from '@/store/cartStore';
+import { usePurchaseQueueStore } from '@/store/purchaseQueueStore';
 import { useNavigate } from 'react-router-dom';
-import ShoppingCartComponent from '@/components/ShoppingCart';
+import PurchaseQueueComponent from '@/components/PurchaseQueue';
 
 const CustomerPortal = () => {
   const { user } = useAuth();
-  const { totalItems, totalValue } = useCartStore();
+  const { totalItems, totalValue } = usePurchaseQueueStore();
   const navigate = useNavigate();
 
   const handleQuickAction = (action: string) => {
@@ -17,10 +17,10 @@ const CustomerPortal = () => {
       case 'inventory':
         navigate('/inventory');
         break;
-      case 'cart':
-        // The ShoppingCart component will handle its own opening state
+      case 'queue':
+        // The PurchaseQueue component will handle its own opening state
         // We just need to render it normally and let it handle the trigger
-        console.log('Cart action triggered - ShoppingCart component will handle display');
+        console.log('Queue action triggered - PurchaseQueue component will handle display');
         break;
       case 'reports':
         navigate('/reports');
@@ -35,17 +35,17 @@ const CustomerPortal = () => {
 
   const customerStats = [
     {
-      title: 'Cart Items',
+      title: 'Queue Items',
       value: totalItems.toString(),
-      description: 'Items in cart',
+      description: 'Items in queue',
       icon: ShoppingCart,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
-      title: 'Cart Value',
+      title: 'Queue Value',
       value: `$${totalValue.toFixed(2)}`,
-      description: 'Total cart value',
+      description: 'Total queue value',
       icon: CreditCard,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
@@ -92,8 +92,8 @@ const CustomerPortal = () => {
             <User className="h-4 w-4 mr-2" />
             Profile
           </Button>
-          {/* Add Shopping Cart Button in Header */}
-          <ShoppingCartComponent />
+          {/* Add Purchase Queue Button in Header */}
+          <PurchaseQueueComponent />
         </div>
       </div>
 
@@ -136,7 +136,7 @@ const CustomerPortal = () => {
               View Inventory
             </Button>
             <div className="w-full">
-              <ShoppingCartComponent showLabel={true} />
+              <PurchaseQueueComponent showLabel={true} />
             </div>
             <Button 
               className="w-full justify-start" 

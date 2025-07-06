@@ -1,26 +1,27 @@
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { InventoryItem } from './inventoryStore';
 import { toast } from '@/hooks/use-toast';
 
-export interface CartItem {
+export interface QueueItem {
   id: string;
   inventoryItem: InventoryItem;
   quantity: number;
   addedAt: Date;
 }
 
-interface CartStore {
-  items: CartItem[];
+interface PurchaseQueueStore {
+  items: QueueItem[];
   totalItems: number;
   totalValue: number;
   addItem: (inventoryItem: InventoryItem, quantity?: number) => void;
   removeItem: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
-  clearCart: () => void;
+  clearQueue: () => void;
 }
 
-export const useCartStore = create<CartStore>()(
+export const usePurchaseQueueStore = create<PurchaseQueueStore>()(
   persist(
     (set, get) => ({
       items: [],
@@ -28,7 +29,7 @@ export const useCartStore = create<CartStore>()(
       totalValue: 0,
       
       addItem: (inventoryItem, quantity = 1) => set((state) => {
-        console.log('Adding item to cart:', inventoryItem.name);
+        console.log('Adding item to purchase queue:', inventoryItem.name);
         
         const existingItem = state.items.find(item => item.inventoryItem.id === inventoryItem.id);
         
@@ -40,13 +41,13 @@ export const useCartStore = create<CartStore>()(
               : item
           );
         } else {
-          const newCartItem: CartItem = {
-            id: `cart-${Date.now()}-${inventoryItem.id}`,
+          const newQueueItem: QueueItem = {
+            id: `queue-${Date.now()}-${inventoryItem.id}`,
             inventoryItem,
             quantity,
             addedAt: new Date(),
           };
-          newItems = [...state.items, newCartItem];
+          newItems = [...state.items, newQueueItem];
         }
         
         const totalItems = newItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -56,7 +57,7 @@ export const useCartStore = create<CartStore>()(
         console.log('Showing toast for:', inventoryItem.name);
         toast({
           title: "Item added successfully!",
-          description: `${inventoryItem.name} has been added to your cart.`,
+          description: `${inventoryItem.name} has been added to your purchase queue.`,
         });
         
         return { items: newItems, totalItems, totalValue };
@@ -89,10 +90,10 @@ export const useCartStore = create<CartStore>()(
         return { items: newItems, totalItems, totalValue };
       }),
       
-      clearCart: () => set({ items: [], totalItems: 0, totalValue: 0 }),
+      clearQueue: () => set({ items: [], totalItems: 0, totalValue: 0 }),
     }),
     {
-      name: 'cart-storage',
+      name: 'purchase-queue-storage',
     }
   )
 );
