@@ -1,6 +1,5 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { User, AuthContextType } from '@/types/user';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,12 +24,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Check for stored user session
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('user');
-      }
+      setUser(JSON.parse(storedUser));
     }
     setLoading(false);
   }, []);
@@ -50,12 +44,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setUser(mockUser);
       localStorage.setItem('user', JSON.stringify(mockUser));
-      
-      // Navigation will be handled by the component
-      return { success: true };
-    } catch (error) {
-      console.error('Sign-in error:', error);
-      throw error;
     } finally {
       setLoading(false);
     }
@@ -76,11 +64,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
-      
-      return { success: true };
-    } catch (error) {
-      console.error('Sign-up error:', error);
-      throw error;
     } finally {
       setLoading(false);
     }

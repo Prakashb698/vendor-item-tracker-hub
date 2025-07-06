@@ -1,6 +1,6 @@
 
 import { LogOut } from "lucide-react";
-import { SidebarTrigger, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,7 +14,7 @@ const Layout = ({ children }: LayoutProps) => {
   const { user, signOut } = useAuth();
 
   return (
-    <SidebarProvider>
+    <>
       <AppSidebar />
       <div className="flex-1 flex flex-col">
         <header className="h-16 flex items-center justify-between border-b bg-white px-6 shadow-sm">
@@ -45,7 +45,7 @@ const Layout = ({ children }: LayoutProps) => {
           {children}
         </main>
       </div>
-    </SidebarProvider>
+    </>
   );
 };
 

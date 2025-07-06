@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { Eye, EyeOff, Package, BarChart3, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,12 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
-import { useToast } from "@/hooks/use-toast";
 
 const Landing = () => {
-  const { signIn, signUp, loading, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const { toast } = useToast();
+  const { signIn, signUp, loading } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,73 +19,16 @@ const Landing = () => {
     role: "customer" as "admin" | "customer"
   });
 
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Basic validation
-    if (!formData.email || !formData.password) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (isSignUp) {
-      if (!formData.businessName) {
-        toast({
-          title: "Error",
-          description: "Business name is required for registration.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      if (formData.password !== formData.confirmPassword) {
-        toast({
-          title: "Error",
-          description: "Passwords do not match.",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
-
     try {
       if (isSignUp) {
         await signUp(formData.email, formData.password, formData.businessName, formData.role);
-        toast({
-          title: "Success",
-          description: "Account created successfully! Redirecting to dashboard...",
-        });
       } else {
         await signIn(formData.email, formData.password);
-        toast({
-          title: "Success",
-          description: "Signed in successfully! Redirecting to dashboard...",
-        });
       }
-      
-      // Navigate to dashboard after successful authentication
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 1000);
-      
     } catch (error) {
       console.error('Authentication error:', error);
-      toast({
-        title: "Error",
-        description: "Authentication failed. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
