@@ -1,5 +1,24 @@
 
 import * as React from "react"
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu"
+import { 
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarFooter
+} from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
 import { useNavigate, useLocation } from "react-router-dom"
 import {
   BarChart3,
@@ -7,20 +26,8 @@ import {
   Tag,
   FileText,
   Receipt,
-  Settings,
-  CreditCard,
-  DollarSign,
+  Menu,
 } from "lucide-react"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarHeader,
-  SidebarFooter,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
@@ -52,18 +59,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "/reports",
       icon: FileText,
     },
-    {
-      title: "Pricing & Billing",
-      url: "/pricing",
-      icon: DollarSign,
-    },
   ];
 
   return (
     <Sidebar {...props}>
       <SidebarHeader>
         <Button variant="link" onClick={() => navigate("/dashboard")}>
-          Acme Corp
+          Dynamic Tracker
         </Button>
       </SidebarHeader>
       <SidebarContent>
@@ -85,7 +87,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => navigate("/admin")}>
-              <Settings className="mr-2 h-4 w-4" />
               Admin
             </SidebarMenuButton>
           </SidebarMenuItem>
