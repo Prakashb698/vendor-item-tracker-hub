@@ -24,7 +24,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Check for stored user session
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('user');
+      }
     }
     setLoading(false);
   }, []);
@@ -70,8 +75,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const signOut = () => {
+    console.log('Signing out user...');
     setUser(null);
     localStorage.removeItem('user');
+    // Force a page reload to ensure clean state
+    window.location.href = '/';
   };
 
   const value: AuthContextType = {
