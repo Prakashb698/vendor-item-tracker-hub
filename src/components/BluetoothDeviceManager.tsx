@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Bluetooth, Loader2, Check, AlertCircle, Refresh } from "lucide-react";
+import { Bluetooth, Loader2, Check, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 interface BluetoothDevice {
@@ -155,7 +154,7 @@ const BluetoothDeviceManager = () => {
               </>
             ) : (
               <>
-                <Refresh className="h-4 w-4 mr-2" />
+                <RefreshCw className="h-4 w-4 mr-2" />
                 Scan for Devices
               </>
             )}
