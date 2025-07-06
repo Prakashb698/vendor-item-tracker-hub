@@ -16,11 +16,15 @@ import {
   AlertTriangle
 } from "lucide-react";
 import BluetoothDeviceManager from "./BluetoothDeviceManager";
+import WifiDeviceManager from "./WifiDeviceManager";
+import UsbDeviceManager from "./UsbDeviceManager";
 
 const ZebraScannerHelp = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [showBluetoothManager, setShowBluetoothManager] = useState(false);
+  const [showWifiManager, setShowWifiManager] = useState(false);
+  const [showUsbManager, setShowUsbManager] = useState(false);
 
   const toggleSection = (section: string) => {
     setActiveSection(activeSection === section ? null : section);
@@ -28,6 +32,20 @@ const ZebraScannerHelp = () => {
 
   const handleBluetoothClick = () => {
     setShowBluetoothManager(!showBluetoothManager);
+    setShowWifiManager(false);
+    setShowUsbManager(false);
+  };
+
+  const handleWifiClick = () => {
+    setShowWifiManager(!showWifiManager);
+    setShowBluetoothManager(false);
+    setShowUsbManager(false);
+  };
+
+  const handleUsbClick = () => {
+    setShowUsbManager(!showUsbManager);
+    setShowBluetoothManager(false);
+    setShowWifiManager(false);
   };
 
   return (
@@ -55,11 +73,14 @@ const ZebraScannerHelp = () => {
                 </h3>
                 
                 <div className="grid gap-3 md:grid-cols-3">
-                  <div className="flex items-center gap-2 p-3 bg-white rounded border">
-                    <Usb className="h-5 w-5 text-blue-600" />
+                  <div 
+                    className="flex items-center gap-2 p-3 bg-white rounded border cursor-pointer hover:bg-red-50 transition-colors"
+                    onClick={handleUsbClick}
+                  >
+                    <Usb className="h-5 w-5 text-purple-600" />
                     <div>
                       <div className="font-medium">USB Cable</div>
-                      <div className="text-xs text-gray-600">Most reliable</div>
+                      <div className="text-xs text-gray-600">Click to manage</div>
                     </div>
                   </div>
                   
@@ -74,20 +95,35 @@ const ZebraScannerHelp = () => {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 p-3 bg-white rounded border">
-                    <Wifi className="h-5 w-5 text-blue-600" />
+                  <div 
+                    className="flex items-center gap-2 p-3 bg-white rounded border cursor-pointer hover:bg-green-50 transition-colors"
+                    onClick={handleWifiClick}
+                  >
+                    <Wifi className="h-5 w-5 text-green-600" />
                     <div>
                       <div className="font-medium">Wi-Fi</div>
-                      <div className="text-xs text-gray-600">Network based</div>
+                      <div className="text-xs text-gray-600">Click to manage</div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Bluetooth Device Manager */}
+              {/* Connection Managers */}
+              {showUsbManager && (
+                <div className="space-y-3">
+                  <UsbDeviceManager />
+                </div>
+              )}
+
               {showBluetoothManager && (
                 <div className="space-y-3">
                   <BluetoothDeviceManager />
+                </div>
+              )}
+
+              {showWifiManager && (
+                <div className="space-y-3">
+                  <WifiDeviceManager />
                 </div>
               )}
 
