@@ -1,4 +1,6 @@
 
+import React from "react";
+import { Outlet } from "react-router-dom";
 import { LogOut } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -14,7 +16,7 @@ const Layout = ({ children }: LayoutProps) => {
   const { user, signOut } = useAuth();
 
   return (
-    <>
+    <div className="flex min-h-screen w-full">
       <AppSidebar />
       <div className="flex-1 flex flex-col">
         <header className="h-16 flex items-center justify-between border-b bg-white px-6 shadow-sm">
@@ -45,7 +47,7 @@ const Layout = ({ children }: LayoutProps) => {
           {children}
         </main>
       </div>
-    </>
+    </div>
   );
 };
 

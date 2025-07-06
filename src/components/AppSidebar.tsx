@@ -1,18 +1,19 @@
+
 import * as React from "react"
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Sidebar } from "@/components/ui/sidebar"
+import { 
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+} from "@/components/ui/sidebar"
 import { Button } from "@/components/ui/button"
-import { useAuth } from "@/hooks/use-auth"
-import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/AuthContext"
 import { useNavigate, useLocation } from "react-router-dom"
 import {
   BarChart3,
@@ -20,7 +21,6 @@ import {
   Tag,
   FileText,
   Receipt,
-  Menu,
 } from "lucide-react"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -57,22 +57,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props}>
-      <Sidebar.Header>
+      <SidebarHeader>
         <Button variant="link" onClick={() => navigate("/dashboard")}>
           Acme Corp
         </Button>
-      </Sidebar.Header>
-      <Sidebar.Content>
+      </SidebarHeader>
+      <SidebarContent>
         <NavigationMenu>
-          <NavigationMenuList>
+          <NavigationMenuList className="flex flex-col space-y-1">
             {items.map((item) => (
               <NavigationMenuItem key={item.title}>
                 <NavigationMenuLink
-                  className={
+                  className={`flex items-center w-full px-3 py-2 rounded-md cursor-pointer hover:bg-accent ${
                     location.pathname === item.url
-                      ? "bg-secondary text-secondary-foreground data-[active]:bg-secondary data-[active]:text-secondary-foreground"
+                      ? "bg-accent text-accent-foreground"
                       : ""
-                  }
+                  }`}
                   onClick={() => navigate(item.url)}
                 >
                   <item.icon className="mr-2 h-4 w-4" />
@@ -82,18 +82,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             ))}
           </NavigationMenuList>
         </NavigationMenu>
-      </Sidebar.Content>
-      <Sidebar.Footer>
+      </SidebarContent>
+      <SidebarFooter>
         <NavigationMenu>
           <NavigationMenuList>
             <NavigationMenuItem>
-              <NavigationMenuLink onClick={() => navigate("/admin")}>
+              <NavigationMenuLink 
+                className="flex items-center w-full px-3 py-2 rounded-md cursor-pointer hover:bg-accent"
+                onClick={() => navigate("/admin")}
+              >
                 Admin
               </NavigationMenuLink>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
-      </Sidebar.Footer>
+      </SidebarFooter>
     </Sidebar>
   )
 }

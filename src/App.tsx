@@ -1,9 +1,11 @@
+
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
-import { AuthProvider } from "./context/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import Landing from "./pages/Landing";
 import Pricing from "./pages/Pricing";
 import CustomerPortal from "./pages/CustomerPortal";
@@ -16,9 +18,9 @@ import Reports from "./pages/Reports";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 import Layout from "./components/Layout";
-const queryClient = new QueryClient();
-
 import Transactions from "./pages/Transactions";
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
@@ -32,14 +34,20 @@ function App() {
             <Route path="/customer-portal" element={<CustomerPortal />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-            <Route element={<Layout />}>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/inventory" element={<Inventory />} />
-              <Route path="/categories" element={<Categories />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/admin" element={<AdminDashboard />} />
-            </Route>
+            <Route path="/*" element={
+              <SidebarProvider>
+                <Layout>
+                  <Routes>
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/inventory" element={<Inventory />} />
+                    <Route path="/categories" element={<Categories />} />
+                    <Route path="/reports" element={<Reports />} />
+                    <Route path="/transactions" element={<Transactions />} />
+                    <Route path="/admin" element={<AdminDashboard />} />
+                  </Routes>
+                </Layout>
+              </SidebarProvider>
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </QueryClientProvider>
