@@ -15,13 +15,19 @@ import {
   CheckCircle,
   AlertTriangle
 } from "lucide-react";
+import BluetoothDeviceManager from "./BluetoothDeviceManager";
 
 const ZebraScannerHelp = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [showBluetoothManager, setShowBluetoothManager] = useState(false);
 
   const toggleSection = (section: string) => {
     setActiveSection(activeSection === section ? null : section);
+  };
+
+  const handleBluetoothClick = () => {
+    setShowBluetoothManager(!showBluetoothManager);
   };
 
   return (
@@ -57,11 +63,14 @@ const ZebraScannerHelp = () => {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-2 p-3 bg-white rounded border">
+                  <div 
+                    className="flex items-center gap-2 p-3 bg-white rounded border cursor-pointer hover:bg-blue-50 transition-colors"
+                    onClick={handleBluetoothClick}
+                  >
                     <Bluetooth className="h-5 w-5 text-blue-600" />
                     <div>
                       <div className="font-medium">Bluetooth</div>
-                      <div className="text-xs text-gray-600">Wireless option</div>
+                      <div className="text-xs text-gray-600">Click to manage</div>
                     </div>
                   </div>
                   
@@ -74,6 +83,13 @@ const ZebraScannerHelp = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Bluetooth Device Manager */}
+              {showBluetoothManager && (
+                <div className="space-y-3">
+                  <BluetoothDeviceManager />
+                </div>
+              )}
 
               {/* Setup Steps */}
               <div className="space-y-3">
@@ -192,7 +208,7 @@ const ZebraScannerHelp = () => {
                       <div>
                         <div className="font-medium">Bluetooth connection issues?</div>
                         <div className="text-sm text-gray-600">
-                          • Unpair and re-pair the device<br/>
+                          • Use the Bluetooth manager above<br/>
                           • Ensure scanner is in discoverable mode<br/>
                           • Check battery level
                         </div>
