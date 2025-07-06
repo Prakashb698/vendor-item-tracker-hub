@@ -1,8 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthContextType } from '@/types/user';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -21,139 +19,67 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session?.user) {
-          const userData: User = {
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.email?.split('@')[0] || '',
-            role: session.user.email?.includes('admin') ? 'admin' : 'customer',
-            businessName: session.user.email?.includes('admin') ? 'Admin Panel' : 'Customer Business',
-            createdAt: session.user.created_at,
-          };
-          setUser(userData);
-        } else {
-          setUser(null);
-        }
-        setLoading(false);
+    // Check for stored user session
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('user');
       }
-    );
-
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        const userData: User = {
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.email?.split('@')[0] || '',
-          role: session.user.email?.includes('admin') ? 'admin' : 'customer',
-          businessName: session.user.email?.includes('admin') ? 'Admin Panel' : 'Customer Business',
-          createdAt: session.user.created_at,
-        };
-        setUser(userData);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    }
+    setLoading(false);
   }, []);
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // Simulate API call - replace with actual authentication
+      const mockUser: User = {
+        id: '1',
         email,
-        password,
-      });
-
-      if (error) {
-        toast({
-          title: "Sign In Error",
-          description: error.message,
-          variant: "destructive",
-        });
-        setLoading(false);
-        return { success: false };
-      }
-
-      toast({
-        title: "Success",
-        description: "Signed in successfully!",
-      });
+        name: email.split('@')[0],
+        role: email.includes('admin') ? 'admin' : 'customer',
+        businessName: email.includes('admin') ? 'Admin Panel' : 'Customer Business',
+        createdAt: new Date().toISOString(),
+      };
+      
+      setUser(mockUser);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+    } finally {
       setLoading(false);
-      return { success: true };
-    } catch (error) {
-      toast({
-        title: "Sign In Error", 
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return { success: false };
     }
   };
 
   const signUp = async (email: string, password: string, businessName: string, role: 'admin' | 'customer' = 'customer') => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
+      // Simulate API call - replace with actual authentication
+      const newUser: User = {
+        id: Math.random().toString(36).substr(2, 9),
         email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            business_name: businessName,
-            role: role,
-          }
-        }
-      });
-
-      if (error) {
-        toast({
-          title: "Sign Up Error",
-          description: error.message,
-          variant: "destructive",
-        });
-        setLoading(false);
-        return { success: false };
-      }
-
-      toast({
-        title: "Success",
-        description: "Account created successfully! Please check your email to verify your account.",
-      });
+        name: email.split('@')[0],
+        role,
+        businessName,
+        createdAt: new Date().toISOString(),
+      };
+      
+      setUser(newUser);
+      localStorage.setItem('user', JSON.stringify(newUser));
+    } finally {
       setLoading(false);
-      return { success: true };
-    } catch (error) {
-      toast({
-        title: "Sign Up Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return { success: false };
     }
   };
 
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Sign Out Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } else {
-      toast({
-        title: "Success",
-        description: "Signed out successfully!",
-      });
-    }
+  const signOut = () => {
+    console.log('Signing out user...');
+    setUser(null);
+    localStorage.removeItem('user');
+    // Force a page reload to ensure clean state
+    window.location.href = '/';
   };
 
   const value: AuthContextType = {

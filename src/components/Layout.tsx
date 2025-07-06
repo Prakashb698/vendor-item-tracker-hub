@@ -13,6 +13,11 @@ interface LayoutProps {
 const Layout = ({ children }: LayoutProps) => {
   const { user, signOut } = useAuth();
 
+  const handleSignOut = () => {
+    console.log('Sign out button clicked');
+    signOut();
+  };
+
   return (
     <>
       <AppSidebar />
@@ -33,7 +38,7 @@ const Layout = ({ children }: LayoutProps) => {
             <Button
               variant="outline"
               size="sm"
-              onClick={signOut}
+              onClick={handleSignOut}
               className="flex items-center gap-2"
             >
               <LogOut className="h-4 w-4" />
