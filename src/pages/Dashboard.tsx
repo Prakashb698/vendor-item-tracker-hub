@@ -2,18 +2,28 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Package, AlertTriangle, TrendingUp, DollarSign } from "lucide-react";
-import { useInventoryStore } from "@/store/inventoryStore";
+import { useInventoryItems } from "@/hooks/useInventoryItems";
+import { useInventoryCategories } from "@/hooks/useInventoryCategories";
 
 const Dashboard = () => {
-  const { items } = useInventoryStore();
+  const { data: items = [], isLoading } = useInventoryItems();
+  const { data: categories = [] } = useInventoryCategories();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   const totalItems = items.length;
-  const lowStockItems = items.filter(item => item.quantity <= item.lowStockThreshold).length;
-  const totalValue = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
-  const categoriesCount = new Set(items.map(item => item.category)).size;
+  const lowStockItems = items.filter(item => item.quantity <= item.low_stock_threshold).length;
+  const totalValue = items.reduce((sum, item) => sum + (item.quantity * Number(item.price)), 0);
+  const categoriesCount = categories.length;
 
   const recentLowStock = items
-    .filter(item => item.quantity <= item.lowStockThreshold)
+    .filter(item => item.quantity <= item.low_stock_threshold)
     .slice(0, 5);
 
   return (
@@ -98,7 +108,7 @@ const Dashboard = () => {
                     <Badge variant="destructive" className="mb-1">
                       {item.quantity} left
                     </Badge>
-                    <p className="text-xs text-gray-500">Min: {item.lowStockThreshold}</p>
+                    <p className="text-xs text-gray-500">Min: {item.low_stock_threshold}</p>
                   </div>
                 </div>
               ))}
