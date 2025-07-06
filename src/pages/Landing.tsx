@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Eye, EyeOff, Package, BarChart3, Shield, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,7 @@ const Landing = () => {
                 <Package className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900">StockTracker</h1>
+                <h1 className="text-xl font-bold text-gray-900">Dynamic Tracking</h1>
                 <p className="text-sm text-gray-500">Multi-Portal Edition</p>
               </div>
             </div>

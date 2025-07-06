@@ -56,7 +56,7 @@ export function AppSidebar() {
             </div>
             {!isCollapsed && (
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">StockTracker</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Dynamic Tracking</h2>
                 <p className="text-xs text-gray-500">
                   {user?.role === 'admin' ? 'Admin Panel' : 'Customer Portal'}
                 </p>
