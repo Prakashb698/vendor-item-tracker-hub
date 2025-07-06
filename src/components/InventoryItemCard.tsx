@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2, Package, AlertTriangle, MapPin, ShoppingCart as ShoppingCartIcon } from "lucide-react";
 import { InventoryItem, useInventoryStore } from "@/store/inventoryStore";
-import { useCartStore } from "@/store/cartStore";
+import { usePurchaseQueueStore } from "@/store/purchaseQueueStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import EditItemDialog from "./EditItemDialog";
@@ -21,7 +21,7 @@ interface InventoryItemCardProps {
 const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false, onSelect }: InventoryItemCardProps) => {
   const { user } = useAuth();
   const { deleteItem } = useInventoryStore();
-  const { addItem } = useCartStore();
+  const { addItem } = usePurchaseQueueStore();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
   const isLowStock = item.quantity <= item.lowStockThreshold;
@@ -41,7 +41,7 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToQueue = () => {
     addItem(item, 1);
   };
 
@@ -107,7 +107,7 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={handleAddToCart}
+                    onClick={handleAddToQueue}
                     disabled={item.quantity === 0}
                     className="text-blue-600 border-blue-200 hover:bg-blue-50"
                   >
@@ -148,12 +148,12 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
 
           {user?.role === 'customer' && !isMultiSelectMode && (
             <Button
-              onClick={handleAddToCart}
+              onClick={handleAddToQueue}
               disabled={item.quantity === 0}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
               <ShoppingCartIcon className="h-4 w-4 mr-2" />
-              {item.quantity === 0 ? 'Out of Stock' : 'Add to Cart'}
+              {item.quantity === 0 ? 'Out of Stock' : 'Add to Queue'}
             </Button>
           )}
 

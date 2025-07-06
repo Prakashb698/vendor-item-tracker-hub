@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CreditCard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCartStore } from '@/store/cartStore';
+import { usePurchaseQueueStore } from '@/store/purchaseQueueStore';
 import { toast } from '@/hooks/use-toast';
 
 interface PaymentButtonProps {
@@ -23,7 +23,7 @@ const PaymentButton = ({
   children 
 }: PaymentButtonProps) => {
   const { user } = useAuth();
-  const { items: cartItems, totalValue, clearCart } = useCartStore();
+  const { items: queueItems, totalValue, clearQueue } = usePurchaseQueueStore();
   const [loading, setLoading] = useState(false);
 
   const handlePayment = async () => {
@@ -39,7 +39,7 @@ const PaymentButton = ({
     setLoading(true);
     try {
       const paymentAmount = amount || Math.round(totalValue * 100); // Convert to cents
-      const paymentItems = items || cartItems.map(item => ({
+      const paymentItems = items || queueItems.map(item => ({
         id: item.inventoryItem.id,
         name: item.inventoryItem.name,
         quantity: item.quantity,

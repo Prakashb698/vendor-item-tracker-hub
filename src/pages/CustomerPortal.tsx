@@ -1,8 +1,8 @@
+
 import { Package, ShoppingCart, FileText, CreditCard, User, Bell } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCartStore } from '@/store/cartStore';
 import { usePurchaseQueueStore } from '@/store/purchaseQueueStore';
 import { useNavigate } from 'react-router-dom';
 import PurchaseQueueComponent from '@/components/PurchaseQueue';
@@ -69,7 +69,7 @@ const CustomerPortal = () => {
   ];
 
   const recentActivity = [
-    { action: 'Item added to cart', time: '2 hours ago', type: 'success' },
+    { action: 'Item added to queue', time: '2 hours ago', type: 'success' },
     { action: 'Inventory updated', time: '4 hours ago', type: 'info' },
     { action: 'Order placed', time: '1 day ago', type: 'success' },
     { action: 'New product available', time: '2 days ago', type: 'info' },
