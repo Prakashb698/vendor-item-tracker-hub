@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAddInventoryItem } from "@/hooks/useInventoryItems";
 import { useInventoryCategories, useAddInventoryCategory } from "@/hooks/useInventoryCategories";
+import { useZebraScanner } from "@/hooks/useZebraScanner";
+import { Scan } from "lucide-react";
 
 interface AddItemDialogProps {
   open: boolean;
@@ -18,6 +20,7 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
   const addItemMutation = useAddInventoryItem();
   const { data: categories = [] } = useInventoryCategories();
   const addCategoryMutation = useAddInventoryCategory();
+  const { lastScannedBarcode, setLastScannedBarcode } = useZebraScanner();
   
   const [formData, setFormData] = useState({
     name: "",
@@ -27,11 +30,20 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
     price: "",
     low_stock_threshold: "",
     sku: "",
+    barcode: "",
     location: "",
     vendor: "",
   });
   const [newCategory, setNewCategory] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+
+  // Auto-fill barcode when scanner detects one
+  useState(() => {
+    if (lastScannedBarcode && open) {
+      setFormData(prev => ({ ...prev, barcode: lastScannedBarcode }));
+      setLastScannedBarcode("");
+    }
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +60,7 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
       price: parseFloat(formData.price),
       low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
       sku: formData.sku || `SKU-${Date.now()}`,
+      barcode: formData.barcode || null,
       location: formData.location || null,
       vendor: formData.vendor || null,
     }, {
@@ -60,6 +73,7 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
           price: "",
           low_stock_threshold: "",
           sku: "",
+          barcode: "",
           location: "",
           vendor: "",
         });
@@ -101,6 +115,29 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
                 className="mt-1"
                 required
               />
+            </div>
+
+            <div className="col-span-2">
+              <Label htmlFor="barcode" className="text-sm font-medium text-gray-700">
+                Barcode
+              </Label>
+              <div className="flex gap-2 mt-1">
+                <Input
+                  id="barcode"
+                  value={formData.barcode}
+                  onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                  placeholder="Scan or enter barcode"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="px-3 text-blue-600 border-blue-200 hover:bg-blue-50"
+                  title="Use Zebra Scanner above to scan barcode"
+                >
+                  <Scan className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             <div className="col-span-2">

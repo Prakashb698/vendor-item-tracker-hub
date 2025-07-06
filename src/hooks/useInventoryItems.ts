@@ -13,6 +13,7 @@ export interface InventoryItem {
   price: number;
   low_stock_threshold: number;
   sku: string;
+  barcode: string | null;
   location: string | null;
   vendor: string | null;
   created_at: string;
