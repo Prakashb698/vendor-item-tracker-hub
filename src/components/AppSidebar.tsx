@@ -1,18 +1,5 @@
+
 import * as React from "react"
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Sidebar } from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
-import { useAuth } from "@/hooks/use-auth"
-import { useToast } from "@/hooks/use-toast"
 import { useNavigate, useLocation } from "react-router-dom"
 import {
   BarChart3,
@@ -20,8 +7,17 @@ import {
   Tag,
   FileText,
   Receipt,
-  Menu,
 } from "lucide-react"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarFooter,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const navigate = useNavigate();
@@ -57,43 +53,35 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props}>
-      <Sidebar.Header>
+      <SidebarHeader>
         <Button variant="link" onClick={() => navigate("/dashboard")}>
           Acme Corp
         </Button>
-      </Sidebar.Header>
-      <Sidebar.Content>
-        <NavigationMenu>
-          <NavigationMenuList>
-            {items.map((item) => (
-              <NavigationMenuItem key={item.title}>
-                <NavigationMenuLink
-                  className={
-                    location.pathname === item.url
-                      ? "bg-secondary text-secondary-foreground data-[active]:bg-secondary data-[active]:text-secondary-foreground"
-                      : ""
-                  }
-                  onClick={() => navigate(item.url)}
-                >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.title}
-                </NavigationMenuLink>
-              </NavigationMenuItem>
-            ))}
-          </NavigationMenuList>
-        </NavigationMenu>
-      </Sidebar.Content>
-      <Sidebar.Footer>
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavigationMenuLink onClick={() => navigate("/admin")}>
-                Admin
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-      </Sidebar.Footer>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          {items.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton 
+                onClick={() => navigate(item.url)}
+                isActive={location.pathname === item.url}
+              >
+                <item.icon className="mr-2 h-4 w-4" />
+                {item.title}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={() => navigate("/admin")}>
+              Admin
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   )
 }
