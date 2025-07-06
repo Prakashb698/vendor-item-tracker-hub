@@ -7,6 +7,9 @@ import {
   Tag,
   FileText,
   Receipt,
+  Settings,
+  CreditCard,
+  DollarSign,
 } from "lucide-react"
 import {
   Sidebar,
@@ -49,6 +52,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       url: "/reports",
       icon: FileText,
     },
+    {
+      title: "Pricing & Billing",
+      url: "/pricing",
+      icon: DollarSign,
+    },
   ];
 
   return (
@@ -77,6 +85,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => navigate("/admin")}>
+              <Settings className="mr-2 h-4 w-4" />
               Admin
             </SidebarMenuButton>
           </SidebarMenuItem>
