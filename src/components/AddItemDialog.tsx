@@ -28,6 +28,7 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
     low_stock_threshold: "",
     sku: "",
     location: "",
+    vendor: "",
   });
   const [newCategory, setNewCategory] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -48,6 +49,7 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
       low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
       sku: formData.sku || `SKU-${Date.now()}`,
       location: formData.location || null,
+      vendor: formData.vendor || null,
     }, {
       onSuccess: () => {
         setFormData({
@@ -59,6 +61,7 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
           low_stock_threshold: "",
           sku: "",
           location: "",
+          vendor: "",
         });
         onOpenChange(false);
       }
@@ -224,6 +227,19 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="e.g., A1-S2, Warehouse B"
+                className="mt-1"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <Label htmlFor="vendor" className="text-sm font-medium text-gray-700">
+                Vendor/Supplier
+              </Label>
+              <Input
+                id="vendor"
+                value={formData.vendor}
+                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+                placeholder="Enter vendor or supplier name"
                 className="mt-1"
               />
             </div>

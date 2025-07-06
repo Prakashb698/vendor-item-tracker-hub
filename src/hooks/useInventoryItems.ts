@@ -14,6 +14,7 @@ export interface InventoryItem {
   low_stock_threshold: number;
   sku: string;
   location: string | null;
+  vendor: string | null;
   created_at: string;
   updated_at: string;
   user_id: string;
