@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Bluetooth, Loader2, Check, AlertCircle, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
-interface BluetoothDevice {
+interface BluetoothDeviceInfo {
   id: string;
   name: string;
   connected: boolean;
@@ -15,7 +14,7 @@ interface BluetoothDevice {
 
 const BluetoothDeviceManager = () => {
   const [isScanning, setIsScanning] = useState(false);
-  const [devices, setDevices] = useState<BluetoothDevice[]>([]);
+  const [devices, setDevices] = useState<BluetoothDeviceInfo[]>([]);
   const [isBluetoothSupported, setIsBluetoothSupported] = useState(false);
 
   useEffect(() => {
@@ -48,7 +47,7 @@ const BluetoothDeviceManager = () => {
 
       console.log('Found Bluetooth device:', device.name);
 
-      const newDevice: BluetoothDevice = {
+      const newDevice: BluetoothDeviceInfo = {
         id: device.id,
         name: device.name || 'Unknown Device',
         connected: false,
@@ -87,7 +86,7 @@ const BluetoothDeviceManager = () => {
     }
   };
 
-  const connectToDevice = async (deviceInfo: BluetoothDevice) => {
+  const connectToDevice = async (deviceInfo: BluetoothDeviceInfo) => {
     if (!deviceInfo.device) {
       toast({
         title: "Connection Failed",
@@ -136,7 +135,7 @@ const BluetoothDeviceManager = () => {
     }
   };
 
-  const disconnectDevice = async (deviceInfo: BluetoothDevice) => {
+  const disconnectDevice = async (deviceInfo: BluetoothDeviceInfo) => {
     try {
       if (deviceInfo.device?.gatt?.connected) {
         deviceInfo.device.gatt.disconnect();
