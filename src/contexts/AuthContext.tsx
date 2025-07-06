@@ -77,6 +77,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           description: error.message,
           variant: "destructive",
         });
+        setLoading(false);
         return { success: false };
       }
 
@@ -84,16 +85,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         title: "Success",
         description: "Signed in successfully!",
       });
+      setLoading(false);
       return { success: true };
     } catch (error) {
       toast({
-        title: "Sign In Error",
+        title: "Sign In Error", 
         description: "An unexpected error occurred",
         variant: "destructive",
       });
-      return { success: false };
-    } finally {
       setLoading(false);
+      return { success: false };
     }
   };
 
@@ -118,6 +119,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           description: error.message,
           variant: "destructive",
         });
+        setLoading(false);
         return { success: false };
       }
 
@@ -125,6 +127,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         title: "Success",
         description: "Account created successfully! Please check your email to verify your account.",
       });
+      setLoading(false);
       return { success: true };
     } catch (error) {
       toast({
@@ -132,9 +135,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         description: "An unexpected error occurred",
         variant: "destructive",
       });
-      return { success: false };
-    } finally {
       setLoading(false);
+      return { success: false };
     }
   };
 
