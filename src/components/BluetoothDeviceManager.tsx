@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,7 @@ interface BluetoothDevice {
   id: string;
   name: string;
   connected: boolean;
+  device?: BluetoothDevice;
 }
 
 const BluetoothDeviceManager = () => {
@@ -36,47 +38,80 @@ const BluetoothDeviceManager = () => {
     setIsScanning(true);
     
     try {
-      // Simulate scanning for demo purposes
-      // In real implementation, you would use navigator.bluetooth.requestDevice()
-      setTimeout(() => {
-        const mockDevices: BluetoothDevice[] = [
-          { id: "1", name: "Zebra DS2278", connected: false },
-          { id: "2", name: "Zebra LI3678", connected: false },
-          { id: "3", name: "Generic Bluetooth Scanner", connected: false },
-        ];
-        setDevices(mockDevices);
-        setIsScanning(false);
-        
-        toast({
-          title: "Scan Complete",
-          description: `Found ${mockDevices.length} Bluetooth devices`,
-        });
-      }, 2000);
+      console.log('Starting Bluetooth device scan...');
       
+      // Request Bluetooth device
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: ['generic_access', 'generic_attribute']
+      });
+
+      console.log('Found Bluetooth device:', device.name);
+
+      const newDevice: BluetoothDevice = {
+        id: device.id,
+        name: device.name || 'Unknown Device',
+        connected: false,
+        device: device
+      };
+
+      setDevices(prev => {
+        const exists = prev.find(d => d.id === device.id);
+        if (exists) return prev;
+        return [...prev, newDevice];
+      });
+
+      toast({
+        title: "Device Found",
+        description: `Found: ${device.name || 'Unknown Device'}`,
+      });
+
     } catch (error) {
       console.error('Bluetooth scan error:', error);
+      
+      if (error.name === 'NotFoundError') {
+        toast({
+          title: "No Device Selected",
+          description: "Please select a Bluetooth device from the list",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Scan Failed",
+          description: "Failed to scan for Bluetooth devices. Make sure Bluetooth is enabled.",
+          variant: "destructive",
+        });
+      }
+    } finally {
       setIsScanning(false);
-      toast({
-        title: "Scan Failed",
-        description: "Failed to scan for Bluetooth devices",
-        variant: "destructive",
-      });
     }
   };
 
-  const connectToDevice = async (device: BluetoothDevice) => {
+  const connectToDevice = async (deviceInfo: BluetoothDevice) => {
+    if (!deviceInfo.device) {
+      toast({
+        title: "Connection Failed",
+        description: "Device information not available",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      // Simulate connection process
       toast({
         title: "Connecting...",
-        description: `Connecting to ${device.name}`,
+        description: `Connecting to ${deviceInfo.name}`,
       });
 
-      // Simulate connection delay
-      setTimeout(() => {
+      console.log('Connecting to device:', deviceInfo.name);
+
+      // Connect to GATT server
+      const server = await deviceInfo.device.gatt?.connect();
+      
+      if (server?.connected) {
         setDevices(prev => 
           prev.map(d => 
-            d.id === device.id 
+            d.id === deviceInfo.id 
               ? { ...d, connected: true }
               : { ...d, connected: false } // Disconnect others
           )
@@ -84,34 +119,52 @@ const BluetoothDeviceManager = () => {
         
         toast({
           title: "Connected Successfully! 🎉",
-          description: `${device.name} is now connected and ready to use`,
+          description: `${deviceInfo.name} is now connected and ready to use`,
           duration: 5000,
         });
-      }, 1500);
+
+        console.log('Successfully connected to:', deviceInfo.name);
+      }
       
     } catch (error) {
       console.error('Connection error:', error);
       toast({
         title: "Connection Failed",
-        description: `Failed to connect to ${device.name}`,
+        description: `Failed to connect to ${deviceInfo.name}. Make sure the device is in pairing mode.`,
         variant: "destructive",
       });
     }
   };
 
-  const disconnectDevice = (device: BluetoothDevice) => {
-    setDevices(prev => 
-      prev.map(d => 
-        d.id === device.id 
-          ? { ...d, connected: false }
-          : d
-      )
-    );
-    
-    toast({
-      title: "Disconnected",
-      description: `${device.name} has been disconnected`,
-    });
+  const disconnectDevice = async (deviceInfo: BluetoothDevice) => {
+    try {
+      if (deviceInfo.device?.gatt?.connected) {
+        deviceInfo.device.gatt.disconnect();
+      }
+      
+      setDevices(prev => 
+        prev.map(d => 
+          d.id === deviceInfo.id 
+            ? { ...d, connected: false }
+            : d
+        )
+      );
+      
+      toast({
+        title: "Disconnected",
+        description: `${deviceInfo.name} has been disconnected`,
+      });
+
+      console.log('Disconnected from:', deviceInfo.name);
+      
+    } catch (error) {
+      console.error('Disconnect error:', error);
+      toast({
+        title: "Disconnect Error",
+        description: "Error disconnecting device",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!isBluetoothSupported) {
@@ -218,6 +271,7 @@ const BluetoothDeviceManager = () => {
           <ul className="mt-1 space-y-1 text-xs">
             <li>• Make sure your Zebra scanner is in pairing mode</li>
             <li>• Keep the scanner close to your computer during pairing</li>
+            <li>• Your browser will show a popup to select the device</li>
             <li>• Once connected, test scanning to ensure proper setup</li>
           </ul>
         </div>
