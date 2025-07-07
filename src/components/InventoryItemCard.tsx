@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -146,12 +147,6 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
               ${Number(item.price).toFixed(2)}
             </span>
           </div>
-
-          {item.vendor && (
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">Vendor:</span> {item.vendor}
-            </div>
-          )}
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">

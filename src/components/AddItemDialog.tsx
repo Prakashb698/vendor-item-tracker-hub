@@ -32,7 +32,6 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
     sku: "",
     barcode: "",
     location: "",
-    vendor: "",
   });
   const [newCategory, setNewCategory] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -62,7 +61,6 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
       sku: formData.sku || `SKU-${Date.now()}`,
       barcode: formData.barcode || null,
       location: formData.location || null,
-      vendor: formData.vendor || null,
     }, {
       onSuccess: () => {
         setFormData({
@@ -75,7 +73,6 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
           sku: "",
           barcode: "",
           location: "",
-          vendor: "",
         });
         onOpenChange(false);
       }
@@ -264,19 +261,6 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="e.g., A1-S2, Warehouse B"
-                className="mt-1"
-              />
-            </div>
-
-            <div className="col-span-2">
-              <Label htmlFor="vendor" className="text-sm font-medium text-gray-700">
-                Vendor/Supplier
-              </Label>
-              <Input
-                id="vendor"
-                value={formData.vendor}
-                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-                placeholder="Enter vendor or supplier name"
                 className="mt-1"
               />
             </div>

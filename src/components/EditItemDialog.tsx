@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -30,7 +31,6 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
     sku: "",
     barcode: "",
     location: "",
-    vendor: "",
   });
 
   useEffect(() => {
@@ -45,7 +45,6 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
         sku: item.sku,
         barcode: item.barcode || "",
         location: item.location || "",
-        vendor: item.vendor || "",
       });
     }
   }, [item]);
@@ -69,7 +68,6 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
         sku: formData.sku,
         barcode: formData.barcode || null,
         location: formData.location || null,
-        vendor: formData.vendor || null,
       }
     }, {
       onSuccess: () => {
@@ -216,19 +214,6 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="e.g., A1-S2, Warehouse B"
-                className="mt-1"
-              />
-            </div>
-
-            <div className="col-span-2">
-              <Label htmlFor="vendor" className="text-sm font-medium text-gray-700">
-                Vendor/Supplier
-              </Label>
-              <Input
-                id="vendor"
-                value={formData.vendor}
-                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
-                placeholder="Enter vendor or supplier name"
                 className="mt-1"
               />
             </div>
