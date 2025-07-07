@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,7 +14,6 @@ export interface InventoryItem {
   sku: string;
   barcode: string | null;
   location: string | null;
-  vendor: string | null;
   created_at: string;
   updated_at: string;
   user_id: string;
