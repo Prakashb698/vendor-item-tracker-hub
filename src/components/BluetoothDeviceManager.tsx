@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,50 +41,36 @@ const BluetoothDeviceManager = () => {
     setIsScanning(true);
     
     try {
-      console.log('Starting Bluetooth device scan for Zebra scanners...');
+      console.log('Starting Bluetooth device scan for scanners...');
       
-      // Enhanced filters specifically for Zebra scanners and barcode scanners
+      // Simplified filters to avoid blocklisted UUIDs
       const device = await navigator.bluetooth.requestDevice({
         filters: [
-          // Zebra Technologies filters
+          // Name-based filters for common scanner brands
           { namePrefix: "Zebra" },
           { namePrefix: "zebra" },
           { namePrefix: "ZEBRA" },
-          { namePrefix: "DS" }, // Common Zebra scanner prefix
-          { namePrefix: "LI" }, // Common Zebra scanner prefix
-          { namePrefix: "MT" }, // Mobile Terminal prefix
-          { namePrefix: "TC" }, // Touch Computer prefix
-          { namePrefix: "Symbol" }, // Symbol Technologies (now Zebra)
-          
-          // Generic HID and barcode scanner filters
+          { namePrefix: "DS" },
+          { namePrefix: "LI" },
+          { namePrefix: "MT" },
+          { namePrefix: "TC" },
+          { namePrefix: "Symbol" },
           { namePrefix: "Scanner" },
           { namePrefix: "Barcode" },
-          { namePrefix: "HID" },
-          { namePrefix: "Keyboard" }, // Many scanners appear as keyboards
-          
-          // Common manufacturer filters
           { namePrefix: "Honeywell" },
           { namePrefix: "Datalogic" },
           { namePrefix: "CODE" },
+          { namePrefix: "HID" },
           
-          // Service-based filters for HID devices
-          { services: ['00001812-0000-1000-8000-00805f9b34fb'] }, // HID Service
+          // Generic service filters (only safe, non-blocklisted ones)
           { services: ['0000180f-0000-1000-8000-00805f9b34fb'] }, // Battery Service
         ],
         optionalServices: [
-          // HID Services
-          '00001812-0000-1000-8000-00805f9b34fb', // HID Service
-          '00001813-0000-1000-8000-00805f9b34fb', // Scan Parameters Service
-          
-          // Standard services
+          // Only include safe, commonly supported services
           '0000180f-0000-1000-8000-00805f9b34fb', // Battery Service
           '0000180a-0000-1000-8000-00805f9b34fb', // Device Information Service
           '00001800-0000-1000-8000-00805f9b34fb', // Generic Access
           '00001801-0000-1000-8000-00805f9b34fb', // Generic Attribute
-          
-          // Additional services that scanners might use
-          '6e400001-b5a3-f393-e0a9-e50e24dcca9e', // Nordic UART Service
-          '0000ffe0-0000-1000-8000-00805f9b34fb', // Custom service used by some scanners
         ]
       });
 
@@ -143,13 +128,19 @@ const BluetoothDeviceManager = () => {
       if (error.name === 'NotFoundError') {
         toast({
           title: "No Scanner Selected",
-          description: "Please select your Zebra scanner from the browser popup. If you don't see it, try putting your scanner in pairing mode.",
+          description: "Please select your scanner from the browser popup. Make sure your scanner is in pairing mode and visible.",
           variant: "destructive",
         });
       } else if (error.name === 'NotAllowedError') {
         toast({
           title: "Permission Denied",
           description: "Bluetooth access was denied. Please allow Bluetooth permissions and try again.",
+          variant: "destructive",
+        });
+      } else if (error.name === 'SecurityError') {
+        toast({
+          title: "Browser Security Restriction",
+          description: "Some Bluetooth features are restricted. Try pairing your scanner directly in your OS Bluetooth settings first, then scan again.",
           variant: "destructive",
         });
       } else {
@@ -315,11 +306,12 @@ const BluetoothDeviceManager = () => {
           <div className="flex items-start gap-2">
             <Info className="h-4 w-4 mt-0.5" />
             <div>
-              <strong>Scanner Setup Instructions:</strong>
+              <strong>Updated Scanner Setup:</strong>
               <ol className="mt-1 space-y-1 text-xs list-decimal list-inside">
-                <li>Put your Zebra scanner in <strong>pairing/discoverable mode</strong></li>
+                <li><strong>First</strong>: Pair your scanner in your computer's Bluetooth settings</li>
+                <li><strong>Then</strong>: Put your scanner in <strong>discoverable mode</strong></li>
                 <li>Click "Scan for Scanners" below</li>
-                <li>Select your scanner from the browser popup (look for "Zebra", "DS", "Scanner", or "HID")</li>
+                <li>Select your scanner from the browser popup</li>
                 <li>Click "Connect" to establish connection</li>
               </ol>
             </div>
@@ -420,20 +412,18 @@ const BluetoothDeviceManager = () => {
         {devices.length === 0 && !isScanning && (
           <div className="text-center py-4 text-gray-500">
             <Bluetooth className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No scanners found. Make sure your scanner is in pairing mode and click "Scan for Scanners".</p>
+            <p className="text-sm">No scanners found. Try pairing your scanner in system Bluetooth settings first.</p>
           </div>
         )}
 
         <div className="bg-amber-50 border border-amber-200 p-3 rounded text-sm text-amber-800">
-          <strong>⚠️ Important Notes:</strong>
+          <strong>⚠️ Troubleshooting Tips:</strong>
           <ul className="mt-1 space-y-1 text-xs">
-            <li>• Your scanner must be in <strong>pairing/discoverable mode</strong> to be detected</li>
-            <li>• Look for device names like "Zebra", "DS2278", "Scanner", "HID Device", or similar</li>
-            <li>• If your scanner doesn't appear, try:</li>
-            <li>&nbsp;&nbsp;- Turning Bluetooth off/on on your computer</li>
-            <li>&nbsp;&nbsp;- Restarting your scanner</li>
-            <li>&nbsp;&nbsp;- Using a different browser (Chrome/Edge work best)</li>
-            <li>• Some scanners may require specific pairing procedures - check your manual</li>
+            <li>• <strong>If scanning fails</strong>: First pair your scanner in your computer's Bluetooth settings</li>
+            <li>• <strong>Scanner not appearing</strong>: Make sure it's in pairing/discoverable mode</li>
+            <li>• <strong>Connection issues</strong>: Try restarting both your scanner and browser</li>
+            <li>• <strong>Browser compatibility</strong>: Chrome and Edge work best for Web Bluetooth</li>
+            <li>• Look for device names like "Zebra", "DS2278", "Scanner", or your scanner model</li>
           </ul>
         </div>
       </CardContent>
