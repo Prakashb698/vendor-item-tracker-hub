@@ -25,7 +25,6 @@ interface ParsedItem {
   sku: string;
   barcode: string;
   location: string;
-  vendor: string;
   isValid: boolean;
   missingFields: string[];
 }
@@ -105,7 +104,6 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
         sku: row[6] || '',
         barcode: row[7] || '',
         location: row[8] || '',
-        vendor: row[9] || '',
       };
 
       const validation = validateItem(baseItem);
@@ -165,7 +163,6 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
             sku: item.sku,
             barcode: item.barcode || null,
             location: item.location || null,
-            vendor: item.vendor || null,
           });
           successCount++;
         } catch (error) {
@@ -195,10 +192,10 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
   };
 
   const downloadTemplate = () => {
-    const headers = ['Name*', 'Description', 'Category*', 'Quantity', 'Price', 'Low Stock Threshold', 'SKU*', 'Barcode', 'Location', 'Vendor'];
+    const headers = ['Name*', 'Description', 'Category*', 'Quantity', 'Price', 'Low Stock Threshold', 'SKU*', 'Barcode', 'Location'];
     const sampleData = [
-      ['Premium Coffee Beans', 'High-quality arabica coffee beans', 'Beverages', '25', '15.99', '10', 'COF-001', '1234567890123', 'A1-S2', 'Coffee Co'],
-      ['Organic Honey', 'Pure organic honey from local beekeepers', 'Food', '15', '12.50', '8', 'HON-001', '1234567890124', 'B2-S1', 'Honey Farm']
+      ['Premium Coffee Beans', 'High-quality arabica coffee beans', 'Beverages', '25', '15.99', '10', 'COF-001', '1234567890123', 'A1-S2'],
+      ['Organic Honey', 'Pure organic honey from local beekeepers', 'Food', '15', '12.50', '8', 'HON-001', '1234567890124', 'B2-S1']
     ];
     
     const csvContent = [headers, ...sampleData].map(row => row.join(',')).join('\n');
@@ -253,7 +250,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
                 <div>
                   <p className="font-medium text-blue-800">File Format Requirements:</p>
                   <ul className="mt-1 space-y-1 text-blue-700">
-                    <li>• Columns: Name*, Description, Category*, Quantity, Price, Low Stock Threshold, SKU*, Barcode, Location, Vendor</li>
+                    <li>• Columns: Name*, Description, Category*, Quantity, Price, Low Stock Threshold, SKU*, Barcode, Location</li>
                     <li>• Fields marked with * are required</li>
                     <li>• First row should contain headers</li>
                     <li>• SKU and Barcode must be unique if provided</li>
