@@ -42,20 +42,50 @@ const BluetoothDeviceManager = () => {
     setIsScanning(true);
     
     try {
-      console.log('Starting Bluetooth device scan...');
+      console.log('Starting Bluetooth device scan for Zebra scanners...');
       
-      // Request Bluetooth device with better filters for scanners
+      // Enhanced filters specifically for Zebra scanners and barcode scanners
       const device = await navigator.bluetooth.requestDevice({
-        acceptAllDevices: true,
+        filters: [
+          // Zebra Technologies filters
+          { namePrefix: "Zebra" },
+          { namePrefix: "zebra" },
+          { namePrefix: "ZEBRA" },
+          { namePrefix: "DS" }, // Common Zebra scanner prefix
+          { namePrefix: "LI" }, // Common Zebra scanner prefix
+          { namePrefix: "MT" }, // Mobile Terminal prefix
+          { namePrefix: "TC" }, // Touch Computer prefix
+          { namePrefix: "Symbol" }, // Symbol Technologies (now Zebra)
+          
+          // Generic HID and barcode scanner filters
+          { namePrefix: "Scanner" },
+          { namePrefix: "Barcode" },
+          { namePrefix: "HID" },
+          { namePrefix: "Keyboard" }, // Many scanners appear as keyboards
+          
+          // Common manufacturer filters
+          { namePrefix: "Honeywell" },
+          { namePrefix: "Datalogic" },
+          { namePrefix: "CODE" },
+          
+          // Service-based filters for HID devices
+          { services: ['00001812-0000-1000-8000-00805f9b34fb'] }, // HID Service
+          { services: ['0000180f-0000-1000-8000-00805f9b34fb'] }, // Battery Service
+        ],
         optionalServices: [
-          'generic_access',
-          'generic_attribute',
-          'device_information',
-          'battery_service',
+          // HID Services
+          '00001812-0000-1000-8000-00805f9b34fb', // HID Service
+          '00001813-0000-1000-8000-00805f9b34fb', // Scan Parameters Service
+          
+          // Standard services
           '0000180f-0000-1000-8000-00805f9b34fb', // Battery Service
           '0000180a-0000-1000-8000-00805f9b34fb', // Device Information Service
           '00001800-0000-1000-8000-00805f9b34fb', // Generic Access
-          '00001801-0000-1000-8000-00805f9b34fb'  // Generic Attribute
+          '00001801-0000-1000-8000-00805f9b34fb', // Generic Attribute
+          
+          // Additional services that scanners might use
+          '6e400001-b5a3-f393-e0a9-e50e24dcca9e', // Nordic UART Service
+          '0000ffe0-0000-1000-8000-00805f9b34fb', // Custom service used by some scanners
         ]
       });
 
@@ -66,7 +96,7 @@ const BluetoothDeviceManager = () => {
       
       const newDevice: BluetoothDeviceInfo = {
         id: device.id,
-        name: device.name || 'Unknown Device',
+        name: device.name || 'Unknown Scanner',
         connected: false,
         device: device
       };
@@ -80,14 +110,14 @@ const BluetoothDeviceManager = () => {
         );
         toast({
           title: "Device Updated",
-          description: `Updated: ${device.name || 'Unknown Device'}`,
+          description: `Updated: ${device.name || 'Unknown Scanner'}`,
         });
       } else {
         // Add new device
         setDevices(prev => [...prev, newDevice]);
         toast({
-          title: "Device Found",
-          description: `Found: ${device.name || 'Unknown Device'}`,
+          title: "Scanner Found! 🎉",
+          description: `Found: ${device.name || 'Unknown Scanner'}`,
         });
       }
 
@@ -101,8 +131,8 @@ const BluetoothDeviceManager = () => {
         );
         setConnectedDeviceId(null);
         toast({
-          title: "Device Disconnected",
-          description: `${device.name || 'Unknown Device'} was disconnected`,
+          title: "Scanner Disconnected",
+          description: `${device.name || 'Unknown Scanner'} was disconnected`,
           variant: "destructive",
         });
       });
@@ -112,8 +142,8 @@ const BluetoothDeviceManager = () => {
       
       if (error.name === 'NotFoundError') {
         toast({
-          title: "No Device Selected",
-          description: "Please select a Bluetooth device from the browser popup to continue",
+          title: "No Scanner Selected",
+          description: "Please select your Zebra scanner from the browser popup. If you don't see it, try putting your scanner in pairing mode.",
           variant: "destructive",
         });
       } else if (error.name === 'NotAllowedError') {
@@ -125,7 +155,7 @@ const BluetoothDeviceManager = () => {
       } else {
         toast({
           title: "Scan Failed",
-          description: `Failed to scan for Bluetooth devices: ${error.message}`,
+          description: `Failed to find scanner: ${error.message}. Make sure your scanner is in pairing mode.`,
           variant: "destructive",
         });
       }
@@ -270,7 +300,7 @@ const BluetoothDeviceManager = () => {
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <Bluetooth className="h-5 w-5 text-blue-600" />
-          Bluetooth Device Manager
+          Bluetooth Scanner Manager
           {connectedDeviceId && (
             <Badge className="bg-green-500 text-white">
               <Check className="h-3 w-3 mr-1" />
@@ -285,11 +315,12 @@ const BluetoothDeviceManager = () => {
           <div className="flex items-start gap-2">
             <Info className="h-4 w-4 mt-0.5" />
             <div>
-              <strong>How to connect:</strong>
+              <strong>Scanner Setup Instructions:</strong>
               <ol className="mt-1 space-y-1 text-xs list-decimal list-inside">
-                <li>Click "Scan for Devices" below</li>
-                <li>Select your scanner from the browser popup</li>
-                <li>Click "Connect" next to the device</li>
+                <li>Put your Zebra scanner in <strong>pairing/discoverable mode</strong></li>
+                <li>Click "Scan for Scanners" below</li>
+                <li>Select your scanner from the browser popup (look for "Zebra", "DS", "Scanner", or "HID")</li>
+                <li>Click "Connect" to establish connection</li>
               </ol>
             </div>
           </div>
@@ -298,8 +329,8 @@ const BluetoothDeviceManager = () => {
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-600">
             {devices.length > 0 
-              ? `Found ${devices.length} device${devices.length > 1 ? 's' : ''}`
-              : "No devices found yet"
+              ? `Found ${devices.length} scanner${devices.length > 1 ? 's' : ''}`
+              : "No scanners found yet"
             }
           </p>
           <div className="flex gap-2">
@@ -327,7 +358,7 @@ const BluetoothDeviceManager = () => {
               ) : (
                 <>
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Scan for Devices
+                  Scan for Scanners
                 </>
               )}
             </Button>
@@ -336,7 +367,7 @@ const BluetoothDeviceManager = () => {
 
         {devices.length > 0 && (
           <div className="space-y-2">
-            <h4 className="font-medium text-gray-800">Available Devices:</h4>
+            <h4 className="font-medium text-gray-800">Available Scanners:</h4>
             {devices.map((device) => (
               <div 
                 key={device.id}
@@ -389,18 +420,20 @@ const BluetoothDeviceManager = () => {
         {devices.length === 0 && !isScanning && (
           <div className="text-center py-4 text-gray-500">
             <Bluetooth className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No devices found. Click "Scan for Devices" to search.</p>
+            <p className="text-sm">No scanners found. Make sure your scanner is in pairing mode and click "Scan for Scanners".</p>
           </div>
         )}
 
-        <div className="bg-blue-100 p-3 rounded text-sm text-blue-800">
-          <strong>Troubleshooting Tips:</strong>
+        <div className="bg-amber-50 border border-amber-200 p-3 rounded text-sm text-amber-800">
+          <strong>⚠️ Important Notes:</strong>
           <ul className="mt-1 space-y-1 text-xs">
-            <li>• Make sure your Zebra scanner is in pairing/discoverable mode</li>
-            <li>• Keep the scanner close to your computer during pairing</li>
-            <li>• If the browser popup appears, select your scanner from the list</li>
-            <li>• Try turning Bluetooth off and on if devices don't appear</li>
-            <li>• Some scanners may appear with generic names like "HID Device"</li>
+            <li>• Your scanner must be in <strong>pairing/discoverable mode</strong> to be detected</li>
+            <li>• Look for device names like "Zebra", "DS2278", "Scanner", "HID Device", or similar</li>
+            <li>• If your scanner doesn't appear, try:</li>
+            <li>&nbsp;&nbsp;- Turning Bluetooth off/on on your computer</li>
+            <li>&nbsp;&nbsp;- Restarting your scanner</li>
+            <li>&nbsp;&nbsp;- Using a different browser (Chrome/Edge work best)</li>
+            <li>• Some scanners may require specific pairing procedures - check your manual</li>
           </ul>
         </div>
       </CardContent>
