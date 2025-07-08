@@ -33,7 +33,7 @@ export const useInventoryStore = create<InventoryStore>()(
     (set, get) => ({
       items: [
         {
-          id: '1',
+          id: 'item-1',
           name: 'Premium Coffee Beans',
           description: 'High-quality arabica coffee beans from local farms',
           category: 'Beverages',
@@ -48,7 +48,7 @@ export const useInventoryStore = create<InventoryStore>()(
           updatedAt: new Date('2024-01-15'),
         },
         {
-          id: '2',
+          id: 'item-2',
           name: 'Organic Honey',
           description: 'Pure organic honey from local beekeepers',
           category: 'Food',
@@ -63,7 +63,7 @@ export const useInventoryStore = create<InventoryStore>()(
           updatedAt: new Date('2024-01-16'),
         },
         {
-          id: '3',
+          id: 'item-3',
           name: 'Handmade Soap',
           description: 'Natural handmade soap with essential oils',
           category: 'Personal Care',
@@ -80,17 +80,20 @@ export const useInventoryStore = create<InventoryStore>()(
       ],
       categories: ['Beverages', 'Food', 'Personal Care', 'Electronics', 'Clothing'],
       
-      addItem: (itemData) => set((state) => ({
-        items: [
-          ...state.items,
-          {
-            ...itemData,
-            id: Date.now().toString(),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          },
-        ],
-      })),
+      addItem: (itemData) => set((state) => {
+        const uniqueId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        return {
+          items: [
+            ...state.items,
+            {
+              ...itemData,
+              id: uniqueId,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            },
+          ],
+        };
+      }),
       
       updateItem: (id, updates) => set((state) => ({
         items: state.items.map((item) =>

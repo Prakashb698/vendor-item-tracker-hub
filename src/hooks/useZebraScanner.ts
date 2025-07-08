@@ -39,6 +39,7 @@ export const useZebraScanner = () => {
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
   const [lastScanTime, setLastScanTime] = useState<number>(0);
   const [connectedDevice, setConnectedDevice] = useState<BluetoothDevice | null>(null);
+  const [scanBuffer, setScanBuffer] = useState<string>("");
   const { items, updateItem } = useInventoryStore();
 
   // Check for Zebra scanner connection
@@ -94,7 +95,7 @@ export const useZebraScanner = () => {
         try {
           console.log('Attempting Bluetooth connection...');
           
-          // Use specific filters for scanner devices to avoid showing unsupported devices
+          // Use specific filters for scanner devices
           const device = await bluetoothNav.bluetooth.requestDevice({
             filters: [
               { namePrefix: 'Zebra' },
@@ -107,7 +108,6 @@ export const useZebraScanner = () => {
               { namePrefix: 'LS' },
               { namePrefix: 'LI' },
               { namePrefix: 'CS' },
-              // Some scanners might show up with model numbers
               { namePrefix: '2208' },
               { namePrefix: '3608' }
             ],
@@ -115,8 +115,8 @@ export const useZebraScanner = () => {
               'battery_service', 
               'device_information', 
               'human_interface_device',
-              '00001812-0000-1000-8000-00805f9b34fb', // HID Service UUID
-              '0000180f-0000-1000-8000-00805f9b34fb'  // Battery Service UUID
+              '00001812-0000-1000-8000-00805f9b34fb',
+              '0000180f-0000-1000-8000-00805f9b34fb'
             ]
           });
           
@@ -148,7 +148,6 @@ export const useZebraScanner = () => {
         } catch (bluetoothError) {
           console.log('Web Bluetooth connection failed:', bluetoothError);
           
-          // If user cancelled or no device found, show specific message
           if (bluetoothError instanceof Error) {
             if (bluetoothError.name === 'NotFoundError') {
               toast({
@@ -203,18 +202,37 @@ export const useZebraScanner = () => {
     const now = Date.now();
     // Prevent duplicate scans within 1 second
     if (now - lastScanTime < 1000) {
+      console.log('Duplicate scan prevented:', barcode);
       return;
     }
     setLastScanTime(now);
 
-    console.log("Scanned barcode:", barcode);
+    console.log("Processing scanned barcode:", barcode);
     
-    // Try to find item by barcode first, then SKU, then name match
-    const foundItem = items.find(item => 
-      item.barcode === barcode || 
-      item.sku === barcode || 
-      item.name.toLowerCase().includes(barcode.toLowerCase())
-    );
+    // Clean the barcode - remove any extra characters
+    const cleanBarcode = barcode.trim();
+    
+    if (!cleanBarcode) {
+      console.log('Empty barcode, skipping');
+      return;
+    }
+    
+    // Try to find item by barcode first (exact match), then SKU, then name
+    const foundItem = items.find(item => {
+      // First try exact barcode match
+      if (item.barcode && item.barcode === cleanBarcode) {
+        return true;
+      }
+      // Then try SKU match
+      if (item.sku && item.sku === cleanBarcode) {
+        return true;
+      }
+      // Finally try name contains (case insensitive)
+      if (item.name && item.name.toLowerCase().includes(cleanBarcode.toLowerCase())) {
+        return true;
+      }
+      return false;
+    });
 
     if (foundItem) {
       // Item found - increment quantity
@@ -226,15 +244,66 @@ export const useZebraScanner = () => {
         title: "Item Scanned Successfully",
         description: `${foundItem.name} - Quantity updated to ${foundItem.quantity + 1}`,
       });
+      
+      console.log(`Item found and updated: ${foundItem.name}, new quantity: ${foundItem.quantity + 1}`);
     } else {
       // Item not found
       toast({
         title: "Item Not Found",
-        description: `No item found with barcode: ${barcode}`,
+        description: `No item found with barcode: ${cleanBarcode}`,
         variant: "destructive",
       });
+      
+      console.log(`No item found for barcode: ${cleanBarcode}`);
     }
   }, [items, updateItem, lastScanTime]);
+
+  // Enhanced keyboard event handling for better barcode scanning
+  useEffect(() => {
+    if (!isActive || !isConnected) return;
+
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Prevent handling if user is typing in an input field
+      if (event.target instanceof HTMLInputElement || 
+          event.target instanceof HTMLTextAreaElement ||
+          event.target instanceof HTMLSelectElement) {
+        return;
+      }
+
+      // Handle Enter key - process the accumulated barcode
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        if (scanBuffer.length > 0) {
+          console.log('Processing scanned barcode from buffer:', scanBuffer);
+          handleBarcodeScan(scanBuffer);
+          setScanBuffer(""); // Clear buffer after processing
+        }
+        return;
+      }
+
+      // Handle printable characters (build barcode string)
+      if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
+        event.preventDefault();
+        setScanBuffer(prev => prev + event.key);
+        
+        // Auto-clear buffer after 500ms of inactivity (faster than before)
+        setTimeout(() => {
+          setScanBuffer(current => {
+            if (current.includes(event.key)) {
+              return ""; // Clear if this character is still in buffer
+            }
+            return current;
+          });
+        }, 500);
+      }
+    };
+
+    document.addEventListener('keypress', handleKeyPress);
+    
+    return () => {
+      document.removeEventListener('keypress', handleKeyPress);
+    };
+  }, [isScannerActive, isConnected, scanBuffer, handleBarcodeScan]);
 
   const toggleScanner = useCallback(async () => {
     if (!isScannerActive) {
@@ -242,8 +311,10 @@ export const useZebraScanner = () => {
         await connectScanner();
       }
       setIsScannerActive(true);
+      setScanBuffer(""); // Clear buffer when starting
     } else {
       setIsScannerActive(false);
+      setScanBuffer(""); // Clear buffer when stopping
     }
   }, [isScannerActive, isConnected, connectScanner]);
 
@@ -255,6 +326,7 @@ export const useZebraScanner = () => {
     setIsConnected(false);
     setConnectionStatus('disconnected');
     setConnectedDevice(null);
+    setScanBuffer(""); // Clear buffer on disconnect
     toast({
       title: "Scanner Disconnected",
       description: "Scanner has been disconnected",
