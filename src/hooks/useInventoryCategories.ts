@@ -17,25 +17,25 @@ export const useInventoryCategories = () => {
   return useQuery({
     queryKey: ['inventory-categories', user?.id],
     queryFn: async () => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user?.id) throw new Error('User not authenticated');
       
-      // Use the same mock UUID logic
-      let userId = user.id;
-      if (userId === '1') {
-        userId = '00000000-0000-0000-0000-000000000001';
-        console.log('Using mock UUID for categories:', userId);
-      }
+      console.log('Fetching categories for user:', user.id);
       
       const { data, error } = await supabase
         .from('inventory_categories')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .order('name');
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching categories:', error);
+        throw error;
+      }
+      
+      console.log('Categories fetched successfully:', data?.length || 0);
       return data as InventoryCategory[];
     },
-    enabled: !!user,
+    enabled: !!user?.id,
   });
 };
 
@@ -45,20 +45,15 @@ export const useAddInventoryCategory = () => {
   
   return useMutation({
     mutationFn: async (name: string) => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user?.id) throw new Error('User not authenticated');
       
-      // Use the same mock UUID logic
-      let userId = user.id;
-      if (userId === '1') {
-        userId = '00000000-0000-0000-0000-000000000001';
-        console.log('Adding category with mock UUID:', userId);
-      }
+      console.log('Adding category:', name, 'for user:', user.id);
       
       const { data, error } = await supabase
         .from('inventory_categories')
         .insert({
           name,
-          user_id: userId,
+          user_id: user.id,
         })
         .select()
         .single();
@@ -67,6 +62,8 @@ export const useAddInventoryCategory = () => {
         console.error('Error adding category:', error);
         throw error;
       }
+      
+      console.log('Category added successfully:', data);
       return data;
     },
     onSuccess: () => {
@@ -77,12 +74,12 @@ export const useAddInventoryCategory = () => {
       });
     },
     onError: (error) => {
+      console.error('Category addition failed:', error);
       toast({
         title: "Error",
         description: "Failed to add category.",
         variant: "destructive",
       });
-      console.error('Error adding category:', error);
     },
   });
 };
@@ -92,12 +89,19 @@ export const useDeleteInventoryCategory = () => {
   
   return useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting category:', id);
+      
       const { error } = await supabase
         .from('inventory_categories')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting category:', error);
+        throw error;
+      }
+      
+      console.log('Category deleted successfully');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-categories'] });
@@ -107,12 +111,12 @@ export const useDeleteInventoryCategory = () => {
       });
     },
     onError: (error) => {
+      console.error('Category deletion failed:', error);
       toast({
         title: "Error",
         description: "Failed to delete category.",
         variant: "destructive",
       });
-      console.error('Error deleting category:', error);
     },
   });
 };

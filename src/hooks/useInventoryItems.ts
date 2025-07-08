@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,25 +26,17 @@ export const useInventoryItems = () => {
   return useQuery({
     queryKey: ['inventory-items', user?.id],
     queryFn: async () => {
-      console.log('Fetching inventory items for user:', user?.id);
-      
       if (!user?.id) {
         console.error('No authenticated user found');
         throw new Error('User not authenticated');
       }
       
-      // For mock authentication, we'll create a mock UUID based on the user ID
-      let userId = user.id;
-      if (userId === '1') {
-        // Use a consistent mock UUID for user ID "1"
-        userId = '00000000-0000-0000-0000-000000000001';
-        console.log('Using mock UUID for user 1:', userId);
-      }
+      console.log('Fetching inventory items for user:', user.id);
       
       const { data, error } = await supabase
         .from('inventory_items')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -64,26 +57,19 @@ export const useAddInventoryItem = () => {
   
   return useMutation({
     mutationFn: async (item: Omit<InventoryItem, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
-      console.log('Adding inventory item for user:', user?.id);
-      console.log('Item data:', item);
-      
       if (!user?.id) {
         console.error('No authenticated user found for adding item');
         throw new Error('User not authenticated');
       }
       
-      // Use the same mock UUID logic
-      let userId = user.id;
-      if (userId === '1') {
-        userId = '00000000-0000-0000-0000-000000000001';
-        console.log('Using mock UUID for adding item:', userId);
-      }
+      console.log('Adding inventory item for user:', user.id);
+      console.log('Item data:', item);
       
       const { data, error } = await supabase
         .from('inventory_items')
         .insert({
           ...item,
-          user_id: userId,
+          user_id: user.id,
         })
         .select()
         .single();
@@ -119,6 +105,8 @@ export const useUpdateInventoryItem = () => {
   
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<InventoryItem> }) => {
+      console.log('Updating inventory item:', id, updates);
+      
       const { data, error } = await supabase
         .from('inventory_items')
         .update(updates)
@@ -126,7 +114,12 @@ export const useUpdateInventoryItem = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating inventory item:', error);
+        throw error;
+      }
+      
+      console.log('Successfully updated inventory item:', data);
       return data;
     },
     onSuccess: () => {
@@ -137,12 +130,12 @@ export const useUpdateInventoryItem = () => {
       });
     },
     onError: (error) => {
+      console.error('Error updating inventory item:', error);
       toast({
         title: "Error",
         description: "Failed to update item.",
         variant: "destructive",
       });
-      console.error('Error updating inventory item:', error);
     },
   });
 };
@@ -152,12 +145,19 @@ export const useDeleteInventoryItem = () => {
   
   return useMutation({
     mutationFn: async (id: string) => {
+      console.log('Deleting inventory item:', id);
+      
       const { error } = await supabase
         .from('inventory_items')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting inventory item:', error);
+        throw error;
+      }
+      
+      console.log('Successfully deleted inventory item');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
@@ -167,12 +167,12 @@ export const useDeleteInventoryItem = () => {
       });
     },
     onError: (error) => {
+      console.error('Error deleting inventory item:', error);
       toast({
         title: "Error",
         description: "Failed to delete item.",
         variant: "destructive",
       });
-      console.error('Error deleting inventory item:', error);
     },
   });
 };
