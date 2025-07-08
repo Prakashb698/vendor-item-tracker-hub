@@ -149,7 +149,7 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
                 <SelectTrigger className="mt-1">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
-                <SelectContent className="bg-white">
+                <SelectContent className="bg-white border shadow-lg z-50 max-h-60 overflow-auto">
                   {categories.map((category) => (
                     <SelectItem key={category.id} value={category.name}>
                       {category.name}

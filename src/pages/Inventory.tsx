@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -120,7 +119,6 @@ const Inventory = () => {
         </div>
       </div>
 
-      {/* Multi-select actions */}
       {isMultiSelectMode && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -150,7 +148,6 @@ const Inventory = () => {
         </div>
       )}
 
-      {/* Zebra Scanner */}
       {showScanner && (
         <BarcodeScanner
           onScan={handleBarcodeScan}
@@ -159,7 +156,6 @@ const Inventory = () => {
         />
       )}
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg shadow-sm border">
         <div className="flex-1">
           <div className="relative">
@@ -180,7 +176,7 @@ const Inventory = () => {
                 <SelectValue placeholder="Category" />
               </div>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border shadow-lg z-50 max-h-60 overflow-auto">
               <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.name}>
@@ -192,7 +188,6 @@ const Inventory = () => {
         </div>
       </div>
 
-      {/* Items Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.map((item) => (
           <InventoryItemCard 

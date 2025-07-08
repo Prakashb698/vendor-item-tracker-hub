@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -187,7 +186,7 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
                     <SelectTrigger className="flex-1">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white">
+                    <SelectContent className="bg-white border shadow-lg z-50 max-h-60 overflow-auto">
                       {categories.map((category) => (
                         <SelectItem key={category.id} value={category.name}>
                           {category.name}
