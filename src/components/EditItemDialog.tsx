@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { InventoryItem, useInventoryStore } from "@/store/inventoryStore";
-import { toast } from "@/hooks/use-toast";
+import { InventoryItem, useUpdateInventoryItem } from "@/hooks/useInventoryItems";
+import { useInventoryCategories, useAddInventoryCategory } from "@/hooks/useInventoryCategories";
 
 interface EditItemDialogProps {
   item: InventoryItem;
@@ -16,14 +16,17 @@ interface EditItemDialogProps {
 }
 
 const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
-  const { updateItem, categories, addCategory } = useInventoryStore();
+  const updateItemMutation = useUpdateInventoryItem();
+  const { data: categories = [] } = useInventoryCategories();
+  const addCategoryMutation = useAddInventoryCategory();
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     category: "",
     quantity: "",
     price: "",
-    lowStockThreshold: "",
+    low_stock_threshold: "",
     sku: "",
     location: "",
   });
@@ -32,11 +35,11 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
     if (item) {
       setFormData({
         name: item.name,
-        description: item.description,
+        description: item.description || "",
         category: item.category,
         quantity: item.quantity.toString(),
         price: item.price.toString(),
-        lowStockThreshold: item.lowStockThreshold.toString(),
+        low_stock_threshold: item.low_stock_threshold.toString(),
         sku: item.sku,
         location: item.location || "",
       });
@@ -47,31 +50,26 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
     e.preventDefault();
     
     if (!formData.name || !formData.category || !formData.quantity || !formData.price) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
       return;
     }
 
-    updateItem(item.id, {
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      quantity: parseInt(formData.quantity),
-      price: parseFloat(formData.price),
-      lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
-      sku: formData.sku,
-      location: formData.location || "Not specified",
+    updateItemMutation.mutate({
+      id: item.id,
+      updates: {
+        name: formData.name,
+        description: formData.description || null,
+        category: formData.category,
+        quantity: parseInt(formData.quantity),
+        price: parseFloat(formData.price),
+        low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
+        sku: formData.sku,
+        location: formData.location || null,
+      }
+    }, {
+      onSuccess: () => {
+        onOpenChange(false);
+      }
     });
-
-    toast({
-      title: "Item Updated",
-      description: `${formData.name} has been updated successfully.`,
-    });
-
-    onOpenChange(false);
   };
 
   return (
@@ -124,8 +122,8 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
                 </SelectTrigger>
                 <SelectContent className="bg-white">
                   {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -166,14 +164,14 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
             </div>
 
             <div>
-              <Label htmlFor="lowStockThreshold" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="low_stock_threshold" className="text-sm font-medium text-gray-700">
                 Low Stock Alert
               </Label>
               <Input
-                id="lowStockThreshold"
+                id="low_stock_threshold"
                 type="number"
-                value={formData.lowStockThreshold}
-                onChange={(e) => setFormData({ ...formData, lowStockThreshold: e.target.value })}
+                value={formData.low_stock_threshold}
+                onChange={(e) => setFormData({ ...formData, low_stock_threshold: e.target.value })}
                 placeholder="5"
                 className="mt-1"
                 min="0"
@@ -218,8 +216,9 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
             <Button 
               type="submit"
               className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={updateItemMutation.isPending}
             >
-              Update Item
+              {updateItemMutation.isPending ? 'Updating...' : 'Update Item'}
             </Button>
           </div>
         </form>
