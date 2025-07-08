@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import PurchaseQueue from "./PurchaseQueue";
+import { MLChatBot } from "./MLChatBot";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -44,6 +45,8 @@ const Layout = ({ children }: LayoutProps) => {
         <main className="flex-1 p-6 bg-gray-50">
           {children}
         </main>
+        {/* Show ML-powered chatbot only for customers */}
+        {user?.role === 'customer' && <MLChatBot />}
       </div>
     </>
   );
