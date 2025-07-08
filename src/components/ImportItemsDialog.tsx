@@ -1,75 +1,24 @@
+
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, XCircle } from "lucide-react";
-import { useAddInventoryItem } from "@/hooks/useInventoryItems";
-import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Upload, FileSpreadsheet, AlertCircle, CheckCircle } from "lucide-react";
+import { useInventoryStore } from "@/store/inventoryStore";
+import { useToast } from "@/hooks/use-toast";
 
 interface ImportItemsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-interface ParsedItem {
-  rowIndex: number;
-  name: string;
-  description: string;
-  category: string;
-  quantity: number;
-  price: number;
-  lowStockThreshold: number;
-  sku: string;
-  barcode: string;
-  location: string;
-  isValid: boolean;
-  missingFields: string[];
-}
-
 const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
-  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
-  const [previewData, setPreviewData] = useState<ParsedItem[]>([]);
-  const [validationResults, setValidationResults] = useState<{
-    validItems: number;
-    invalidItems: number;
-    totalItems: number;
-  }>({ validItems: 0, invalidItems: 0, totalItems: 0 });
-  
-  const addItemMutation = useAddInventoryItem();
-
-  const validateItem = (item: Omit<ParsedItem, 'isValid' | 'missingFields'>): { isValid: boolean; missingFields: string[] } => {
-    const requiredFields = [
-      { field: 'name', value: item.name },
-      { field: 'category', value: item.category },
-      { field: 'sku', value: item.sku },
-    ];
-
-    const missingFields: string[] = [];
-
-    requiredFields.forEach(({ field, value }) => {
-      if (!value || value.toString().trim() === '') {
-        missingFields.push(field);
-      }
-    });
-
-    // Check for numeric fields that should be >= 0
-    if (item.quantity < 0) {
-      missingFields.push('quantity (must be >= 0)');
-    }
-    if (item.price < 0) {
-      missingFields.push('price (must be >= 0)');
-    }
-
-    return {
-      isValid: missingFields.length === 0,
-      missingFields
-    };
-  };
+  const [previewData, setPreviewData] = useState<any[]>([]);
+  const { addItem } = useInventoryStore();
+  const { toast } = useToast();
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -93,111 +42,60 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
     // Remove empty rows and header
     const dataRows = rows.slice(1).filter(row => row.some(cell => cell.length > 0));
     
-    const parsedData: ParsedItem[] = dataRows.map((row, index) => {
-      const baseItem = {
-        rowIndex: index + 2, // +2 because we start from row 1 and skip header
-        name: row[0] || '',
-        description: row[1] || '',
-        category: row[2] || '',
-        quantity: parseInt(row[3]) || 0,
-        price: parseFloat(row[4]) || 0,
-        lowStockThreshold: parseInt(row[5]) || 10,
-        sku: row[6] || '',
-        barcode: row[7] || '',
-        location: row[8] || '',
-      };
-
-      const validation = validateItem(baseItem);
-      
-      return {
-        ...baseItem,
-        isValid: validation.isValid,
-        missingFields: validation.missingFields
-      };
-    });
-
-    const validItems = parsedData.filter(item => item.isValid).length;
-    const invalidItems = parsedData.filter(item => !item.isValid).length;
-
-    setValidationResults({
-      validItems,
-      invalidItems,
-      totalItems: parsedData.length
-    });
+    const parsedData = dataRows.map((row, index) => ({
+      rowIndex: index + 1,
+      name: row[0] || '',
+      description: row[1] || '',
+      category: row[2] || 'Uncategorized',
+      quantity: parseInt(row[3]) || 0,
+      price: parseFloat(row[4]) || 0,
+      lowStockThreshold: parseInt(row[5]) || 10,
+      sku: row[6] || `SKU-${Date.now()}-${index}`,
+      location: row[7] || 'Not specified',
+    }));
 
     setPreviewData(parsedData);
   };
 
   const handleImport = async () => {
-    console.log('Import started - User:', user);
-    
-    if (!user?.id) {
-      console.error('No authenticated user for import');
-      toast({
-        title: "Authentication Required",
-        description: "You must be logged in to import items.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const validItems = previewData.filter(item => item.isValid);
-    
-    if (validItems.length === 0) {
-      toast({
-        title: "No Valid Items",
-        description: "All items have validation errors. Please fix the issues before importing.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (validationResults.invalidItems > 0) {
-      const proceed = window.confirm(
-        `${validationResults.invalidItems} items have validation errors and will be skipped. Do you want to import only the ${validationResults.validItems} valid items?`
-      );
-      if (!proceed) return;
-    }
+    if (!previewData.length) return;
 
     setIsImporting(true);
     try {
       let successCount = 0;
       let errorCount = 0;
 
-      console.log(`Starting import of ${validItems.length} items`);
-
-      for (const item of validItems) {
+      previewData.forEach((item) => {
         try {
-          console.log(`Importing item: ${item.name}`);
-          await addItemMutation.mutateAsync({
-            name: item.name,
-            description: item.description || null,
-            category: item.category,
-            quantity: item.quantity,
-            price: item.price,
-            low_stock_threshold: item.lowStockThreshold,
-            sku: item.sku,
-            barcode: item.barcode || null,
-            location: item.location || null,
-          });
-          successCount++;
+          if (item.name && item.name.length > 0) {
+            addItem({
+              name: item.name,
+              description: item.description,
+              category: item.category,
+              quantity: item.quantity,
+              price: item.price,
+              lowStockThreshold: item.lowStockThreshold,
+              sku: item.sku,
+              location: item.location,
+            });
+            successCount++;
+          } else {
+            errorCount++;
+          }
         } catch (error) {
-          console.error(`Error importing item on row ${item.rowIndex}:`, error);
           errorCount++;
         }
-      }
+      });
 
       toast({
         title: "Import Complete",
-        description: `Successfully imported ${successCount} items${errorCount > 0 ? `. ${errorCount} items failed due to errors.` : '.'}`,
+        description: `Successfully imported ${successCount} items${errorCount > 0 ? `. ${errorCount} items failed.` : '.'}`,
       });
 
       onOpenChange(false);
       setFile(null);
       setPreviewData([]);
-      setValidationResults({ validItems: 0, invalidItems: 0, totalItems: 0 });
     } catch (error) {
-      console.error('Import failed:', error);
       toast({
         title: "Import Failed",
         description: "There was an error importing your items.",
@@ -209,10 +107,10 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
   };
 
   const downloadTemplate = () => {
-    const headers = ['Name*', 'Description', 'Category*', 'Quantity', 'Price', 'Low Stock Threshold', 'SKU*', 'Barcode', 'Location'];
+    const headers = ['Name', 'Description', 'Category', 'Quantity', 'Price', 'Low Stock Threshold', 'SKU', 'Location'];
     const sampleData = [
-      ['Premium Coffee Beans', 'High-quality arabica coffee beans', 'Beverages', '25', '15.99', '10', 'COF-001', '1234567890123', 'A1-S2'],
-      ['Organic Honey', 'Pure organic honey from local beekeepers', 'Food', '15', '12.50', '8', 'HON-001', '1234567890124', 'B2-S1']
+      ['Premium Coffee Beans', 'High-quality arabica coffee beans', 'Beverages', '25', '15.99', '10', 'COF-001', 'A1-S2'],
+      ['Organic Honey', 'Pure organic honey from local beekeepers', 'Food', '15', '12.50', '8', 'HON-001', 'B2-S1']
     ];
     
     const csvContent = [headers, ...sampleData].map(row => row.join(',')).join('\n');
@@ -225,15 +123,9 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
     window.URL.revokeObjectURL(url);
   };
 
-  // Don't render if user is not authenticated
-  if (!user) {
-    console.log('User not authenticated, not rendering import dialog');
-    return null;
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5" />
@@ -273,45 +165,14 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
                 <div>
                   <p className="font-medium text-blue-800">File Format Requirements:</p>
                   <ul className="mt-1 space-y-1 text-blue-700">
-                    <li>• Columns: Name*, Description, Category*, Quantity, Price, Low Stock Threshold, SKU*, Barcode, Location</li>
-                    <li>• Fields marked with * are required</li>
+                    <li>• Columns: Name, Description, Category, Quantity, Price, Low Stock Threshold, SKU, Location</li>
                     <li>• First row should contain headers</li>
-                    <li>• SKU and Barcode must be unique if provided</li>
+                    <li>• Name field is required for each item</li>
                   </ul>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Validation Summary */}
-          {previewData.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Validation Results</h3>
-                <div className="flex gap-4 text-sm">
-                  <div className="flex items-center gap-1 text-green-600">
-                    <CheckCircle className="h-4 w-4" />
-                    {validationResults.validItems} Valid
-                  </div>
-                  {validationResults.invalidItems > 0 && (
-                    <div className="flex items-center gap-1 text-red-600">
-                      <XCircle className="h-4 w-4" />
-                      {validationResults.invalidItems} Invalid
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {validationResults.invalidItems > 0 && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {validationResults.invalidItems} items have validation errors and will be skipped during import.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          )}
 
           {/* Preview Section */}
           {previewData.length > 0 && (
@@ -322,45 +183,31 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
                   <table className="w-full text-sm">
                     <thead className="bg-gray-50 sticky top-0">
                       <tr>
-                        <th className="text-left p-2 border-r">Status</th>
-                        <th className="text-left p-2 border-r">Row</th>
                         <th className="text-left p-2 border-r">Name</th>
                         <th className="text-left p-2 border-r">Category</th>
-                        <th className="text-left p-2 border-r">SKU</th>
+                        <th className="text-left p-2 border-r">Quantity</th>
                         <th className="text-left p-2 border-r">Price</th>
-                        <th className="text-left p-2">Issues</th>
+                        <th className="text-left p-2 border-r">SKU</th>
+                        <th className="text-left p-2">Location</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {previewData.slice(0, 20).map((item, index) => (
-                        <tr key={index} className={`border-t ${!item.isValid ? 'bg-red-50' : ''}`}>
-                          <td className="p-2 border-r">
-                            {item.isValid ? (
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <XCircle className="h-4 w-4 text-red-600" />
-                            )}
-                          </td>
-                          <td className="p-2 border-r text-gray-500">{item.rowIndex}</td>
+                      {previewData.slice(0, 10).map((item, index) => (
+                        <tr key={index} className="border-t">
                           <td className="p-2 border-r font-medium">{item.name || '⚠️ Missing'}</td>
-                          <td className="p-2 border-r">{item.category || '⚠️ Missing'}</td>
-                          <td className="p-2 border-r">{item.sku || '⚠️ Missing'}</td>
+                          <td className="p-2 border-r">{item.category}</td>
+                          <td className="p-2 border-r">{item.quantity}</td>
                           <td className="p-2 border-r">${item.price.toFixed(2)}</td>
-                          <td className="p-2">
-                            {!item.isValid && (
-                              <span className="text-red-600 text-xs">
-                                Missing: {item.missingFields.join(', ')}
-                              </span>
-                            )}
-                          </td>
+                          <td className="p-2 border-r">{item.sku}</td>
+                          <td className="p-2">{item.location}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                {previewData.length > 20 && (
+                {previewData.length > 10 && (
                   <div className="p-2 text-center text-sm text-gray-500 border-t">
-                    ... and {previewData.length - 20} more items
+                    ... and {previewData.length - 10} more items
                   </div>
                 )}
               </div>
@@ -374,7 +221,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
             </Button>
             <Button 
               onClick={handleImport} 
-              disabled={!previewData.length || validationResults.validItems === 0 || isImporting}
+              disabled={!previewData.length || isImporting}
               className="bg-blue-600 hover:bg-blue-700"
             >
               {isImporting ? (
@@ -385,7 +232,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
               ) : (
                 <>
                   <Upload className="h-4 w-4 mr-2" />
-                  Import {validationResults.validItems} Valid Items
+                  Import {previewData.length} Items
                 </>
               )}
             </Button>

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,9 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAddInventoryItem } from "@/hooks/useInventoryItems";
 import { useInventoryCategories, useAddInventoryCategory } from "@/hooks/useInventoryCategories";
-import { useZebraScanner } from "@/hooks/useZebraScanner";
-import { useAuth } from "@/contexts/AuthContext";
-import { Scan } from "lucide-react";
 
 interface AddItemDialogProps {
   open: boolean;
@@ -18,11 +15,9 @@ interface AddItemDialogProps {
 }
 
 const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
-  const { user } = useAuth();
   const addItemMutation = useAddInventoryItem();
   const { data: categories = [] } = useInventoryCategories();
   const addCategoryMutation = useAddInventoryCategory();
-  const { lastScannedBarcode, setLastScannedBarcode } = useZebraScanner();
   
   const [formData, setFormData] = useState({
     name: "",
@@ -32,100 +27,58 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
     price: "",
     low_stock_threshold: "",
     sku: "",
-    barcode: "",
     location: "",
+    vendor: "",
   });
   const [newCategory, setNewCategory] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
 
-  // Debug authentication
-  useEffect(() => {
-    console.log('AddItemDialog - Current user:', user);
-    console.log('AddItemDialog - User ID:', user?.id);
-    console.log('AddItemDialog - User authenticated:', !!user);
-  }, [user]);
-
-  // Auto-fill barcode when scanner detects one
-  useEffect(() => {
-    if (lastScannedBarcode && open) {
-      setFormData(prev => ({ ...prev, barcode: lastScannedBarcode }));
-      setLastScannedBarcode("");
-    }
-  }, [lastScannedBarcode, open, setLastScannedBarcode]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    console.log('Form submission started');
-    console.log('Current user in handleSubmit:', user);
-    
-    if (!user) {
-      console.error('User not authenticated');
-      return;
-    }
-    
     if (!formData.name || !formData.category || !formData.quantity || !formData.price) {
-      console.error('Missing required fields');
       return;
     }
 
-    console.log('Submitting item with data:', formData);
-
-    try {
-      await addItemMutation.mutateAsync({
-        name: formData.name,
-        description: formData.description || null,
-        category: formData.category,
-        quantity: parseInt(formData.quantity),
-        price: parseFloat(formData.price),
-        low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
-        sku: formData.sku || `SKU-${Date.now()}`,
-        barcode: formData.barcode || null,
-        location: formData.location || null,
-      });
-
-      // Reset form and close dialog on success
-      setFormData({
-        name: "",
-        description: "",
-        category: "",
-        quantity: "",
-        price: "",
-        low_stock_threshold: "",
-        sku: "",
-        barcode: "",
-        location: "",
-      });
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error adding item:', error);
-    }
-  };
-
-  const handleAddCategory = async () => {
-    if (!user) {
-      console.error('User not authenticated');
-      return;
-    }
-    
-    if (newCategory.trim()) {
-      console.log('Adding new category:', newCategory.trim());
-      try {
-        await addCategoryMutation.mutateAsync(newCategory.trim());
-        setFormData({ ...formData, category: newCategory.trim() });
-        setNewCategory("");
-        setIsAddingCategory(false);
-      } catch (error) {
-        console.error('Error adding category:', error);
+    addItemMutation.mutate({
+      name: formData.name,
+      description: formData.description || null,
+      category: formData.category,
+      quantity: parseInt(formData.quantity),
+      price: parseFloat(formData.price),
+      low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
+      sku: formData.sku || `SKU-${Date.now()}`,
+      location: formData.location || null,
+      vendor: formData.vendor || null,
+    }, {
+      onSuccess: () => {
+        setFormData({
+          name: "",
+          description: "",
+          category: "",
+          quantity: "",
+          price: "",
+          low_stock_threshold: "",
+          sku: "",
+          location: "",
+          vendor: "",
+        });
+        onOpenChange(false);
       }
-    }
+    });
   };
 
-  // Don't render if user is not authenticated
-  if (!user) {
-    console.log('User not authenticated, not rendering dialog');
-    return null;
-  }
+  const handleAddCategory = () => {
+    if (newCategory.trim()) {
+      addCategoryMutation.mutate(newCategory.trim(), {
+        onSuccess: () => {
+          setFormData({ ...formData, category: newCategory.trim() });
+          setNewCategory("");
+          setIsAddingCategory(false);
+        }
+      });
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -148,29 +101,6 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
                 className="mt-1"
                 required
               />
-            </div>
-
-            <div className="col-span-2">
-              <Label htmlFor="barcode" className="text-sm font-medium text-gray-700">
-                Barcode
-              </Label>
-              <div className="flex gap-2 mt-1">
-                <Input
-                  id="barcode"
-                  value={formData.barcode}
-                  onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                  placeholder="Scan or enter barcode"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="px-3 text-blue-600 border-blue-200 hover:bg-blue-50"
-                  title="Use Zebra Scanner above to scan barcode"
-                >
-                  <Scan className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
 
             <div className="col-span-2">
@@ -199,13 +129,8 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
                     placeholder="Enter new category"
                     onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
                   />
-                  <Button 
-                    type="button" 
-                    onClick={handleAddCategory} 
-                    size="sm"
-                    disabled={addCategoryMutation.isPending}
-                  >
-                    {addCategoryMutation.isPending ? 'Adding...' : 'Add'}
+                  <Button type="button" onClick={handleAddCategory} size="sm">
+                    Add
                   </Button>
                   <Button 
                     type="button" 
@@ -302,6 +227,19 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="e.g., A1-S2, Warehouse B"
+                className="mt-1"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <Label htmlFor="vendor" className="text-sm font-medium text-gray-700">
+                Vendor/Supplier
+              </Label>
+              <Input
+                id="vendor"
+                value={formData.vendor}
+                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+                placeholder="Enter vendor or supplier name"
                 className="mt-1"
               />
             </div>

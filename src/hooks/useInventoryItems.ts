@@ -13,8 +13,8 @@ export interface InventoryItem {
   price: number;
   low_stock_threshold: number;
   sku: string;
-  barcode: string | null;
   location: string | null;
+  vendor: string | null;
   created_at: string;
   updated_at: string;
   user_id: string;
@@ -26,28 +26,17 @@ export const useInventoryItems = () => {
   return useQuery({
     queryKey: ['inventory-items', user?.id],
     queryFn: async () => {
-      if (!user?.id) {
-        console.error('No authenticated user found');
-        throw new Error('User not authenticated');
-      }
-      
-      console.log('Fetching inventory items for user:', user.id);
+      if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('inventory_items')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
-      if (error) {
-        console.error('Error fetching inventory items:', error);
-        throw error;
-      }
-      
-      console.log('Successfully fetched inventory items:', data?.length || 0);
+      if (error) throw error;
       return data as InventoryItem[];
     },
-    enabled: !!user?.id,
+    enabled: !!user,
   });
 };
 
@@ -57,13 +46,7 @@ export const useAddInventoryItem = () => {
   
   return useMutation({
     mutationFn: async (item: Omit<InventoryItem, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
-      if (!user?.id) {
-        console.error('No authenticated user found for adding item');
-        throw new Error('User not authenticated');
-      }
-      
-      console.log('Adding inventory item for user:', user.id);
-      console.log('Item data:', item);
+      if (!user) throw new Error('User not authenticated');
       
       const { data, error } = await supabase
         .from('inventory_items')
@@ -74,12 +57,7 @@ export const useAddInventoryItem = () => {
         .select()
         .single();
       
-      if (error) {
-        console.error('Error adding inventory item:', error);
-        throw error;
-      }
-      
-      console.log('Successfully added inventory item:', data);
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
@@ -90,12 +68,12 @@ export const useAddInventoryItem = () => {
       });
     },
     onError: (error) => {
-      console.error('Error in useAddInventoryItem:', error);
       toast({
         title: "Error",
         description: "Failed to add item to inventory.",
         variant: "destructive",
       });
+      console.error('Error adding inventory item:', error);
     },
   });
 };
@@ -105,8 +83,6 @@ export const useUpdateInventoryItem = () => {
   
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<InventoryItem> }) => {
-      console.log('Updating inventory item:', id, updates);
-      
       const { data, error } = await supabase
         .from('inventory_items')
         .update(updates)
@@ -114,12 +90,7 @@ export const useUpdateInventoryItem = () => {
         .select()
         .single();
       
-      if (error) {
-        console.error('Error updating inventory item:', error);
-        throw error;
-      }
-      
-      console.log('Successfully updated inventory item:', data);
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
@@ -130,12 +101,12 @@ export const useUpdateInventoryItem = () => {
       });
     },
     onError: (error) => {
-      console.error('Error updating inventory item:', error);
       toast({
         title: "Error",
         description: "Failed to update item.",
         variant: "destructive",
       });
+      console.error('Error updating inventory item:', error);
     },
   });
 };
@@ -145,19 +116,12 @@ export const useDeleteInventoryItem = () => {
   
   return useMutation({
     mutationFn: async (id: string) => {
-      console.log('Deleting inventory item:', id);
-      
       const { error } = await supabase
         .from('inventory_items')
         .delete()
         .eq('id', id);
       
-      if (error) {
-        console.error('Error deleting inventory item:', error);
-        throw error;
-      }
-      
-      console.log('Successfully deleted inventory item');
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory-items'] });
@@ -167,12 +131,12 @@ export const useDeleteInventoryItem = () => {
       });
     },
     onError: (error) => {
-      console.error('Error deleting inventory item:', error);
       toast({
         title: "Error",
         description: "Failed to delete item.",
         variant: "destructive",
       });
+      console.error('Error deleting inventory item:', error);
     },
   });
 };

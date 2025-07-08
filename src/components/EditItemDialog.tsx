@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { InventoryItem, useUpdateInventoryItem } from "@/hooks/useInventoryItems";
 import { useInventoryCategories, useAddInventoryCategory } from "@/hooks/useInventoryCategories";
-import { Scan } from "lucide-react";
 
 interface EditItemDialogProps {
   item: InventoryItem;
@@ -29,8 +28,8 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
     price: "",
     low_stock_threshold: "",
     sku: "",
-    barcode: "",
     location: "",
+    vendor: "",
   });
 
   useEffect(() => {
@@ -43,8 +42,8 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
         price: item.price.toString(),
         low_stock_threshold: item.low_stock_threshold.toString(),
         sku: item.sku,
-        barcode: item.barcode || "",
         location: item.location || "",
+        vendor: (item as any).vendor || "",
       });
     }
   }, [item]);
@@ -66,8 +65,8 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
         price: parseFloat(formData.price),
         low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
         sku: formData.sku,
-        barcode: formData.barcode || null,
         location: formData.location || null,
+        vendor: formData.vendor || null,
       }
     }, {
       onSuccess: () => {
@@ -97,29 +96,6 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
                 className="mt-1"
                 required
               />
-            </div>
-
-            <div className="col-span-2">
-              <Label htmlFor="barcode" className="text-sm font-medium text-gray-700">
-                Barcode
-              </Label>
-              <div className="flex gap-2 mt-1">
-                <Input
-                  id="barcode"
-                  value={formData.barcode}
-                  onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                  placeholder="Scan or enter barcode"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="px-3 text-blue-600 border-blue-200 hover:bg-blue-50"
-                  title="Use Zebra Scanner above to scan barcode"
-                >
-                  <Scan className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
 
             <div className="col-span-2">
@@ -214,6 +190,19 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                 placeholder="e.g., A1-S2, Warehouse B"
+                className="mt-1"
+              />
+            </div>
+
+            <div className="col-span-2">
+              <Label htmlFor="vendor" className="text-sm font-medium text-gray-700">
+                Vendor/Supplier
+              </Label>
+              <Input
+                id="vendor"
+                value={formData.vendor}
+                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+                placeholder="Enter vendor or supplier name"
                 className="mt-1"
               />
             </div>
