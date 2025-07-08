@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -130,7 +129,10 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
   };
 
   const handleImport = async () => {
-    if (!user) {
+    console.log('Import started - User:', user);
+    
+    if (!user?.id) {
+      console.error('No authenticated user for import');
       toast({
         title: "Authentication Required",
         description: "You must be logged in to import items.",
@@ -225,6 +227,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
 
   // Don't render if user is not authenticated
   if (!user) {
+    console.log('User not authenticated, not rendering import dialog');
     return null;
   }
 

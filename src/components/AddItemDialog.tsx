@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,16 +38,26 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
   const [newCategory, setNewCategory] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
 
+  // Debug authentication
+  useEffect(() => {
+    console.log('AddItemDialog - Current user:', user);
+    console.log('AddItemDialog - User ID:', user?.id);
+    console.log('AddItemDialog - User authenticated:', !!user);
+  }, [user]);
+
   // Auto-fill barcode when scanner detects one
-  useState(() => {
+  useEffect(() => {
     if (lastScannedBarcode && open) {
       setFormData(prev => ({ ...prev, barcode: lastScannedBarcode }));
       setLastScannedBarcode("");
     }
-  });
+  }, [lastScannedBarcode, open, setLastScannedBarcode]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('Form submission started');
+    console.log('Current user in handleSubmit:', user);
     
     if (!user) {
       console.error('User not authenticated');
@@ -60,38 +71,38 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
 
     console.log('Submitting item with data:', formData);
 
-    addItemMutation.mutate({
-      name: formData.name,
-      description: formData.description || null,
-      category: formData.category,
-      quantity: parseInt(formData.quantity),
-      price: parseFloat(formData.price),
-      low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
-      sku: formData.sku || `SKU-${Date.now()}`,
-      barcode: formData.barcode || null,
-      location: formData.location || null,
-    }, {
-      onSuccess: () => {
-        setFormData({
-          name: "",
-          description: "",
-          category: "",
-          quantity: "",
-          price: "",
-          low_stock_threshold: "",
-          sku: "",
-          barcode: "",
-          location: "",
-        });
-        onOpenChange(false);
-      },
-      onError: (error) => {
-        console.error('Error adding item:', error);
-      }
-    });
+    try {
+      await addItemMutation.mutateAsync({
+        name: formData.name,
+        description: formData.description || null,
+        category: formData.category,
+        quantity: parseInt(formData.quantity),
+        price: parseFloat(formData.price),
+        low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
+        sku: formData.sku || `SKU-${Date.now()}`,
+        barcode: formData.barcode || null,
+        location: formData.location || null,
+      });
+
+      // Reset form and close dialog on success
+      setFormData({
+        name: "",
+        description: "",
+        category: "",
+        quantity: "",
+        price: "",
+        low_stock_threshold: "",
+        sku: "",
+        barcode: "",
+        location: "",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error adding item:', error);
+    }
   };
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     if (!user) {
       console.error('User not authenticated');
       return;
@@ -99,21 +110,20 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
     
     if (newCategory.trim()) {
       console.log('Adding new category:', newCategory.trim());
-      addCategoryMutation.mutate(newCategory.trim(), {
-        onSuccess: () => {
-          setFormData({ ...formData, category: newCategory.trim() });
-          setNewCategory("");
-          setIsAddingCategory(false);
-        },
-        onError: (error) => {
-          console.error('Error adding category:', error);
-        }
-      });
+      try {
+        await addCategoryMutation.mutateAsync(newCategory.trim());
+        setFormData({ ...formData, category: newCategory.trim() });
+        setNewCategory("");
+        setIsAddingCategory(false);
+      } catch (error) {
+        console.error('Error adding category:', error);
+      }
     }
   };
 
   // Don't render if user is not authenticated
   if (!user) {
+    console.log('User not authenticated, not rendering dialog');
     return null;
   }
 

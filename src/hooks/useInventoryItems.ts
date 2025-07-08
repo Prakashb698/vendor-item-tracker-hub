@@ -25,17 +25,27 @@ export const useInventoryItems = () => {
   return useQuery({
     queryKey: ['inventory-items', user?.id],
     queryFn: async () => {
-      if (!user) throw new Error('User not authenticated');
+      console.log('Fetching inventory items for user:', user?.id);
+      
+      if (!user?.id) {
+        console.error('No authenticated user found');
+        throw new Error('User not authenticated');
+      }
       
       const { data, error } = await supabase
         .from('inventory_items')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching inventory items:', error);
+        throw error;
+      }
+      
+      console.log('Successfully fetched inventory items:', data?.length || 0);
       return data as InventoryItem[];
     },
-    enabled: !!user,
+    enabled: !!user?.id,
   });
 };
 
@@ -45,7 +55,13 @@ export const useAddInventoryItem = () => {
   
   return useMutation({
     mutationFn: async (item: Omit<InventoryItem, 'id' | 'created_at' | 'updated_at' | 'user_id'>) => {
-      if (!user) throw new Error('User not authenticated');
+      console.log('Adding inventory item for user:', user?.id);
+      console.log('Item data:', item);
+      
+      if (!user?.id) {
+        console.error('No authenticated user found for adding item');
+        throw new Error('User not authenticated');
+      }
       
       const { data, error } = await supabase
         .from('inventory_items')
@@ -56,7 +72,12 @@ export const useAddInventoryItem = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding inventory item:', error);
+        throw error;
+      }
+      
+      console.log('Successfully added inventory item:', data);
       return data;
     },
     onSuccess: () => {
@@ -67,12 +88,12 @@ export const useAddInventoryItem = () => {
       });
     },
     onError: (error) => {
+      console.error('Error in useAddInventoryItem:', error);
       toast({
         title: "Error",
         description: "Failed to add item to inventory.",
         variant: "destructive",
       });
-      console.error('Error adding inventory item:', error);
     },
   });
 };
