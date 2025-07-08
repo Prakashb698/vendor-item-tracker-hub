@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,7 +34,7 @@ export const useInventoryItems = () => {
       
       // Convert user ID to UUID format if it's not already
       let userId = user.id;
-      if (userId === '1' || userId === 1 || !userId.includes('-')) {
+      if (userId === '1' || userId === '1' || !userId.includes('-')) {
         // Generate a proper UUID for the user if they don't have one
         const { data: authUser } = await supabase.auth.getUser();
         if (authUser.user) {
