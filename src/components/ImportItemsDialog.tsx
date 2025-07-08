@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import { useAddInventoryItem } from "@/hooks/useInventoryItems";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -30,6 +31,7 @@ interface ParsedItem {
 }
 
 const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
+  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [previewData, setPreviewData] = useState<ParsedItem[]>([]);
@@ -128,6 +130,15 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
   };
 
   const handleImport = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "You must be logged in to import items.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const validItems = previewData.filter(item => item.isValid);
     
     if (validItems.length === 0) {
@@ -151,8 +162,11 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
       let successCount = 0;
       let errorCount = 0;
 
+      console.log(`Starting import of ${validItems.length} items`);
+
       for (const item of validItems) {
         try {
+          console.log(`Importing item: ${item.name}`);
           await addItemMutation.mutateAsync({
             name: item.name,
             description: item.description || null,
@@ -181,6 +195,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
       setPreviewData([]);
       setValidationResults({ validItems: 0, invalidItems: 0, totalItems: 0 });
     } catch (error) {
+      console.error('Import failed:', error);
       toast({
         title: "Import Failed",
         description: "There was an error importing your items.",
@@ -207,6 +222,11 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
     a.click();
     window.URL.revokeObjectURL(url);
   };
+
+  // Don't render if user is not authenticated
+  if (!user) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

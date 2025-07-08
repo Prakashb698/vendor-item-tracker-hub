@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAddInventoryItem } from "@/hooks/useInventoryItems";
 import { useInventoryCategories, useAddInventoryCategory } from "@/hooks/useInventoryCategories";
 import { useZebraScanner } from "@/hooks/useZebraScanner";
+import { useAuth } from "@/contexts/AuthContext";
 import { Scan } from "lucide-react";
 
 interface AddItemDialogProps {
@@ -17,6 +17,7 @@ interface AddItemDialogProps {
 }
 
 const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
+  const { user } = useAuth();
   const addItemMutation = useAddInventoryItem();
   const { data: categories = [] } = useInventoryCategories();
   const addCategoryMutation = useAddInventoryCategory();
@@ -47,9 +48,17 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.category || !formData.quantity || !formData.price) {
+    if (!user) {
+      console.error('User not authenticated');
       return;
     }
+    
+    if (!formData.name || !formData.category || !formData.quantity || !formData.price) {
+      console.error('Missing required fields');
+      return;
+    }
+
+    console.log('Submitting item with data:', formData);
 
     addItemMutation.mutate({
       name: formData.name,
@@ -75,21 +84,38 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
           location: "",
         });
         onOpenChange(false);
+      },
+      onError: (error) => {
+        console.error('Error adding item:', error);
       }
     });
   };
 
   const handleAddCategory = () => {
+    if (!user) {
+      console.error('User not authenticated');
+      return;
+    }
+    
     if (newCategory.trim()) {
+      console.log('Adding new category:', newCategory.trim());
       addCategoryMutation.mutate(newCategory.trim(), {
         onSuccess: () => {
           setFormData({ ...formData, category: newCategory.trim() });
           setNewCategory("");
           setIsAddingCategory(false);
+        },
+        onError: (error) => {
+          console.error('Error adding category:', error);
         }
       });
     }
   };
+
+  // Don't render if user is not authenticated
+  if (!user) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -163,8 +189,13 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
                     placeholder="Enter new category"
                     onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
                   />
-                  <Button type="button" onClick={handleAddCategory} size="sm">
-                    Add
+                  <Button 
+                    type="button" 
+                    onClick={handleAddCategory} 
+                    size="sm"
+                    disabled={addCategoryMutation.isPending}
+                  >
+                    {addCategoryMutation.isPending ? 'Adding...' : 'Add'}
                   </Button>
                   <Button 
                     type="button" 
