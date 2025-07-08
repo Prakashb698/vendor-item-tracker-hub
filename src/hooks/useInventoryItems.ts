@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,9 +33,22 @@ export const useInventoryItems = () => {
         throw new Error('User not authenticated');
       }
       
+      // Convert user ID to UUID format if it's not already
+      let userId = user.id;
+      if (userId === '1' || userId === 1 || !userId.includes('-')) {
+        // Generate a proper UUID for the user if they don't have one
+        const { data: authUser } = await supabase.auth.getUser();
+        if (authUser.user) {
+          userId = authUser.user.id;
+        } else {
+          throw new Error('Cannot get authenticated user UUID');
+        }
+      }
+      
       const { data, error } = await supabase
         .from('inventory_items')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -63,11 +77,17 @@ export const useAddInventoryItem = () => {
         throw new Error('User not authenticated');
       }
       
+      // Get the proper UUID from Supabase auth
+      const { data: authUser } = await supabase.auth.getUser();
+      if (!authUser.user) {
+        throw new Error('Cannot get authenticated user UUID');
+      }
+      
       const { data, error } = await supabase
         .from('inventory_items')
         .insert({
           ...item,
-          user_id: user.id,
+          user_id: authUser.user.id,
         })
         .select()
         .single();

@@ -19,9 +19,16 @@ export const useInventoryCategories = () => {
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
       
+      // Get the proper UUID from Supabase auth
+      const { data: authUser } = await supabase.auth.getUser();
+      if (!authUser.user) {
+        throw new Error('Cannot get authenticated user UUID');
+      }
+      
       const { data, error } = await supabase
         .from('inventory_categories')
         .select('*')
+        .eq('user_id', authUser.user.id)
         .order('name');
       
       if (error) throw error;
@@ -39,16 +46,27 @@ export const useAddInventoryCategory = () => {
     mutationFn: async (name: string) => {
       if (!user) throw new Error('User not authenticated');
       
+      // Get the proper UUID from Supabase auth
+      const { data: authUser } = await supabase.auth.getUser();
+      if (!authUser.user) {
+        throw new Error('Cannot get authenticated user UUID');
+      }
+      
+      console.log('Adding category with user ID:', authUser.user.id);
+      
       const { data, error } = await supabase
         .from('inventory_categories')
         .insert({
           name,
-          user_id: user.id,
+          user_id: authUser.user.id,
         })
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding category:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
