@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Filter, Upload, Scan, Trash2 } from "lucide-react";
-import { useInventoryItems, useDeleteInventoryItem } from "@/hooks/useInventoryItems";
-import { useInventoryCategories } from "@/hooks/useInventoryCategories";
+import { useInventoryStore } from "@/store/inventoryStore";
 import InventoryItemCard from "@/components/InventoryItemCard";
 import AddItemDialog from "@/components/AddItemDialog";
 import ImportItemsDialog from "@/components/ImportItemsDialog";
@@ -13,10 +12,7 @@ import BarcodeScanner from "@/components/BarcodeScanner";
 import { useZebraScanner } from "@/hooks/useZebraScanner";
 
 const Inventory = () => {
-  const { data: items = [], isLoading: itemsLoading } = useInventoryItems();
-  const { data: categories = [] } = useInventoryCategories();
-  const deleteItemMutation = useDeleteInventoryItem();
-  
+  const { items, categories, deleteItem } = useInventoryStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -60,7 +56,7 @@ const Inventory = () => {
       .join(', ');
     
     if (window.confirm(`Are you sure you want to delete ${selectedItems.length} items: ${itemNames}?`)) {
-      selectedItems.forEach(itemId => deleteItemMutation.mutate(itemId));
+      selectedItems.forEach(itemId => deleteItem(itemId));
       setSelectedItems([]);
       setIsMultiSelectMode(false);
     }
@@ -70,14 +66,6 @@ const Inventory = () => {
     setIsMultiSelectMode(!isMultiSelectMode);
     setSelectedItems([]);
   };
-
-  if (itemsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -183,8 +171,8 @@ const Inventory = () => {
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
-                <SelectItem key={category.id} value={category.name}>
-                  {category.name}
+                <SelectItem key={category} value={category}>
+                  {category}
                 </SelectItem>
               ))}
             </SelectContent>

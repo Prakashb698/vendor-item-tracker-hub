@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAddInventoryItem } from "@/hooks/useInventoryItems";
-import { useInventoryCategories, useAddInventoryCategory } from "@/hooks/useInventoryCategories";
+import { useInventoryStore } from "@/store/inventoryStore";
+import { toast } from "@/hooks/use-toast";
 
 interface AddItemDialogProps {
   open: boolean;
@@ -15,17 +15,14 @@ interface AddItemDialogProps {
 }
 
 const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
-  const addItemMutation = useAddInventoryItem();
-  const { data: categories = [] } = useInventoryCategories();
-  const addCategoryMutation = useAddInventoryCategory();
-  
+  const { addItem, categories, addCategory } = useInventoryStore();
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     category: "",
     quantity: "",
     price: "",
-    low_stock_threshold: "",
+    lowStockThreshold: "",
     sku: "",
     location: "",
   });
@@ -36,43 +33,52 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
     e.preventDefault();
     
     if (!formData.name || !formData.category || !formData.quantity || !formData.price) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
       return;
     }
 
-    addItemMutation.mutate({
+    addItem({
       name: formData.name,
-      description: formData.description || null,
+      description: formData.description,
       category: formData.category,
       quantity: parseInt(formData.quantity),
       price: parseFloat(formData.price),
-      low_stock_threshold: parseInt(formData.low_stock_threshold) || 5,
+      lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
       sku: formData.sku || `SKU-${Date.now()}`,
-      location: formData.location || null,
-    }, {
-      onSuccess: () => {
-        setFormData({
-          name: "",
-          description: "",
-          category: "",
-          quantity: "",
-          price: "",
-          low_stock_threshold: "",
-          sku: "",
-          location: "",
-        });
-        onOpenChange(false);
-      }
+      location: formData.location || "Not specified",
     });
+
+    toast({
+      title: "Item Added",
+      description: `${formData.name} has been added to your inventory.`,
+    });
+
+    setFormData({
+      name: "",
+      description: "",
+      category: "",
+      quantity: "",
+      price: "",
+      lowStockThreshold: "",
+      sku: "",
+      location: "",
+    });
+    onOpenChange(false);
   };
 
   const handleAddCategory = () => {
     if (newCategory.trim()) {
-      addCategoryMutation.mutate(newCategory.trim(), {
-        onSuccess: () => {
-          setFormData({ ...formData, category: newCategory.trim() });
-          setNewCategory("");
-          setIsAddingCategory(false);
-        }
+      addCategory(newCategory.trim());
+      setFormData({ ...formData, category: newCategory.trim() });
+      setNewCategory("");
+      setIsAddingCategory(false);
+      toast({
+        title: "Category Added",
+        description: `${newCategory} has been added to your categories.`,
       });
     }
   };
@@ -149,8 +155,8 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
                     </SelectTrigger>
                     <SelectContent className="bg-white">
                       {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.name}>
-                          {category.name}
+                        <SelectItem key={category} value={category}>
+                          {category}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -201,14 +207,14 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
             </div>
 
             <div>
-              <Label htmlFor="low_stock_threshold" className="text-sm font-medium text-gray-700">
+              <Label htmlFor="lowStockThreshold" className="text-sm font-medium text-gray-700">
                 Low Stock Alert
               </Label>
               <Input
-                id="low_stock_threshold"
+                id="lowStockThreshold"
                 type="number"
-                value={formData.low_stock_threshold}
-                onChange={(e) => setFormData({ ...formData, low_stock_threshold: e.target.value })}
+                value={formData.lowStockThreshold}
+                onChange={(e) => setFormData({ ...formData, lowStockThreshold: e.target.value })}
                 placeholder="5"
                 className="mt-1"
                 min="0"
@@ -253,9 +259,8 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
             <Button 
               type="submit"
               className="bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={addItemMutation.isPending}
             >
-              {addItemMutation.isPending ? 'Adding...' : 'Add Item'}
+              Add Item
             </Button>
           </div>
         </form>

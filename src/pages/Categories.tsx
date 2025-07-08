@@ -5,43 +5,44 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, FolderOpen, Trash2 } from "lucide-react";
-import { useInventoryItems } from "@/hooks/useInventoryItems";
-import { useInventoryCategories, useAddInventoryCategory, useDeleteInventoryCategory } from "@/hooks/useInventoryCategories";
+import { useInventoryStore } from "@/store/inventoryStore";
+import { toast } from "@/hooks/use-toast";
 
 const Categories = () => {
-  const { data: categories = [] } = useInventoryCategories();
-  const { data: items = [] } = useInventoryItems();
-  const addCategoryMutation = useAddInventoryCategory();
-  const deleteCategoryMutation = useDeleteInventoryCategory();
-  
+  const { categories, items, addCategory, deleteCategory } = useInventoryStore();
   const [newCategory, setNewCategory] = useState("");
 
   const handleAddCategory = (e: React.FormEvent) => {
     e.preventDefault();
     if (newCategory.trim()) {
-      addCategoryMutation.mutate(newCategory.trim(), {
-        onSuccess: () => {
-          setNewCategory("");
-        }
+      addCategory(newCategory.trim());
+      toast({
+        title: "Category Added",
+        description: `${newCategory} has been added to your categories.`,
       });
+      setNewCategory("");
     }
   };
 
-  const handleDeleteCategory = (categoryId: string, categoryName: string) => {
-    const itemsInCategory = items.filter(item => item.category === categoryName).length;
+  const handleDeleteCategory = (category: string) => {
+    const itemsInCategory = items.filter(item => item.category === category).length;
     
     if (itemsInCategory > 0) {
       const confirmed = window.confirm(
-        `This category contains ${itemsInCategory} items. Deleting it will not affect the items. Continue?`
+        `This category contains ${itemsInCategory} items. They will be moved to "Uncategorized". Continue?`
       );
       if (!confirmed) return;
     }
 
-    deleteCategoryMutation.mutate(categoryId);
+    deleteCategory(category);
+    toast({
+      title: "Category Deleted",
+      description: `${category} has been deleted.`,
+    });
   };
 
-  const getCategoryItemCount = (categoryName: string) => {
-    return items.filter(item => item.category === categoryName).length;
+  const getCategoryItemCount = (category: string) => {
+    return items.filter(item => item.category === category).length;
   };
 
   return (
@@ -67,10 +68,10 @@ const Categories = () => {
             <Button 
               type="submit" 
               className="bg-blue-600 hover:bg-blue-700 text-white"
-              disabled={!newCategory.trim() || addCategoryMutation.isPending}
+              disabled={!newCategory.trim()}
             >
               <Plus className="h-4 w-4 mr-2" />
-              {addCategoryMutation.isPending ? 'Adding...' : 'Add Category'}
+              Add Category
             </Button>
           </form>
         </CardContent>
@@ -79,10 +80,10 @@ const Categories = () => {
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {categories.map((category) => {
-          const itemCount = getCategoryItemCount(category.name);
+          const itemCount = getCategoryItemCount(category);
           
           return (
-            <Card key={category.id} className="bg-white border transition-all duration-200 hover:shadow-lg hover:border-gray-300">
+            <Card key={category} className="bg-white border transition-all duration-200 hover:shadow-lg hover:border-gray-300">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -90,16 +91,15 @@ const Categories = () => {
                       <FolderOpen className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{category.name}</h3>
+                      <h3 className="font-semibold text-gray-900">{category}</h3>
                       <p className="text-sm text-gray-500">{itemCount} items</p>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleDeleteCategory(category.id, category.name)}
+                    onClick={() => handleDeleteCategory(category)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    disabled={deleteCategoryMutation.isPending}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -119,8 +119,8 @@ const Categories = () => {
                     <div className="pt-2 border-t border-gray-100">
                       <div className="text-xs text-gray-500">
                         Total value: ${items
-                          .filter(item => item.category === category.name)
-                          .reduce((sum, item) => sum + (item.quantity * Number(item.price)), 0)
+                          .filter(item => item.category === category)
+                          .reduce((sum, item) => sum + (item.quantity * item.price), 0)
                           .toFixed(2)}
                       </div>
                     </div>

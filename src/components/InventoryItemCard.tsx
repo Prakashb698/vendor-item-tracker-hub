@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2, Package, AlertTriangle, MapPin, ShoppingCart as ShoppingCartIcon } from "lucide-react";
-import { InventoryItem, useDeleteInventoryItem } from "@/hooks/useInventoryItems";
+import { InventoryItem, useInventoryStore } from "@/store/inventoryStore";
 import { usePurchaseQueueStore } from "@/store/purchaseQueueStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
@@ -20,12 +20,12 @@ interface InventoryItemCardProps {
 
 const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false, onSelect }: InventoryItemCardProps) => {
   const { user } = useAuth();
-  const deleteItemMutation = useDeleteInventoryItem();
+  const { deleteItem } = useInventoryStore();
   const { addItem } = usePurchaseQueueStore();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   
-  const isLowStock = item.quantity <= item.low_stock_threshold;
-  const stockStatus = isLowStock ? 'low' : item.quantity <= item.low_stock_threshold * 2 ? 'medium' : 'high';
+  const isLowStock = item.quantity <= item.lowStockThreshold;
+  const stockStatus = isLowStock ? 'low' : item.quantity <= item.lowStockThreshold * 2 ? 'medium' : 'high';
 
   const getStockColor = () => {
     switch (stockStatus) {
@@ -37,26 +37,12 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
 
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this item?')) {
-      deleteItemMutation.mutate(item.id);
+      deleteItem(item.id);
     }
   };
 
   const handleAddToQueue = () => {
-    // Convert the Supabase item to the format expected by the purchase queue
-    const queueItem = {
-      id: item.id,
-      name: item.name,
-      description: item.description || '',
-      category: item.category,
-      quantity: item.quantity,
-      price: Number(item.price),
-      lowStockThreshold: item.low_stock_threshold,
-      sku: item.sku,
-      location: item.location || '',
-      createdAt: new Date(item.created_at),
-      updatedAt: new Date(item.updated_at),
-    };
-    addItem(queueItem, 1);
+    addItem(item, 1);
   };
 
   const cardBorderClass = isMultiSelectMode && isSelected 
@@ -86,7 +72,7 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
                 <p className="text-sm text-gray-500">SKU: {item.sku}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <MapPin className="h-3 w-3 text-gray-400" />
-                  <span className="text-xs text-gray-500">{item.location || 'No location'}</span>
+                  <span className="text-xs text-gray-500">{item.location}</span>
                 </div>
               </div>
             </div>
@@ -141,7 +127,7 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
               {item.category}
             </Badge>
             <span className="text-lg font-semibold text-gray-900">
-              ${Number(item.price).toFixed(2)}
+              ${item.price.toFixed(2)}
             </span>
           </div>
 
@@ -155,7 +141,7 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
                 {item.quantity} units
               </Badge>
               <span className="text-xs text-gray-500">
-                Min: {item.low_stock_threshold}
+                Min: {item.lowStockThreshold}
               </span>
             </div>
           </div>
@@ -173,7 +159,7 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
 
           <div className="pt-2 border-t border-gray-100">
             <div className="text-xs text-gray-500">
-              Last updated: {new Date(item.updated_at).toLocaleDateString()}
+              Last updated: {new Date(item.updatedAt).toLocaleDateString()}
             </div>
           </div>
         </CardContent>
