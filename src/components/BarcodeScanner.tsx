@@ -3,8 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Scan, X, Check, Bluetooth, BluetoothConnected, Wifi } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { Scan, X, Check, Bluetooth, BluetoothConnected, Settings } from "lucide-react";
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -148,10 +147,15 @@ const BarcodeScanner = ({
               <p className="text-gray-700 font-medium">Scanner Not Connected</p>
               <p className="text-sm text-gray-600">Click "Connect" to pair your Zebra scanner</p>
             </div>
-            <div className="text-xs text-gray-500 space-y-1">
-              <p>• Make sure your Zebra scanner is powered on</p>
-              <p>• Ensure Bluetooth is enabled on your device</p>
-              <p>• Scanner should be in pairing mode</p>
+            <div className="text-xs text-gray-500 space-y-1 bg-blue-50 p-3 rounded-lg">
+              <p className="font-medium text-blue-700">Pairing Instructions:</p>
+              <p>• Power on your Zebra scanner</p>
+              <p>• Make sure it's in pairing mode (check scanner manual)</p>
+              <p>• Or pair it manually via system Bluetooth settings first</p>
+              <div className="mt-2 flex items-center justify-center gap-1 text-blue-600">
+                <Settings className="h-3 w-3" />
+                <span className="text-xs">Scanner should be set to keyboard wedge mode</span>
+              </div>
             </div>
           </div>
         ) : isActive ? (
