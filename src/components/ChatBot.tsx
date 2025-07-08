@@ -38,6 +38,24 @@ export const ChatBot = () => {
     scrollToBottom();
   }, [messages]);
 
+  const getErrorMessage = (error: any, data: any) => {
+    if (data?.errorType) {
+      switch (data.errorType) {
+        case 'missing_api_key':
+          return "The OpenAI API key is not configured. Please contact your administrator to set up the API key.";
+        case 'quota_exceeded':
+          return "The OpenAI API quota has been exceeded. Please contact your administrator to check the billing settings.";
+        case 'rate_limit':
+          return "Too many requests at once. Please wait a moment and try again.";
+        case 'invalid_api_key':
+          return "The OpenAI API key is invalid. Please contact your administrator to update the API key.";
+        default:
+          return data.error || "Sorry, I'm having trouble connecting right now. Please try again later.";
+      }
+    }
+    return "Sorry, I'm having trouble connecting right now. Please try again later.";
+  };
+
   const sendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
 
@@ -85,9 +103,21 @@ export const ChatBot = () => {
       setMessages(prev => [...prev, botMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
+      
+      // Try to parse error response for better error handling
+      let errorData = null;
+      try {
+        if (error.message) {
+          const parsed = JSON.parse(error.message);
+          errorData = parsed;
+        }
+      } catch (e) {
+        // Ignore parsing errors
+      }
+      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Sorry, I'm having trouble connecting right now. Please try again later. If the problem persists, please check that the OpenAI API key is properly configured.",
+        text: getErrorMessage(error, errorData),
         sender: 'bot',
         timestamp: new Date()
       };

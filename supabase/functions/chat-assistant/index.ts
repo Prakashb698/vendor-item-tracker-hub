@@ -24,7 +24,13 @@ serve(async (req) => {
 
     if (!openAIApiKey) {
       console.error('OpenAI API key not configured');
-      throw new Error('OpenAI API key not configured');
+      return new Response(JSON.stringify({ 
+        error: 'OpenAI API key is not configured. Please add your OpenAI API key in the Supabase secrets.',
+        errorType: 'missing_api_key'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     if (!message) {
@@ -78,6 +84,38 @@ Instructions:
     if (!response.ok) {
       const errorText = await response.text();
       console.error('OpenAI API error:', errorText);
+      
+      // Handle specific OpenAI error codes
+      if (response.status === 429) {
+        const errorData = JSON.parse(errorText);
+        if (errorData.error?.code === 'insufficient_quota') {
+          return new Response(JSON.stringify({ 
+            error: 'Your OpenAI API key has exceeded its quota limit. Please check your OpenAI billing and usage limits.',
+            errorType: 'quota_exceeded'
+          }), {
+            status: 429,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        return new Response(JSON.stringify({ 
+          error: 'OpenAI API rate limit exceeded. Please try again in a moment.',
+          errorType: 'rate_limit'
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      if (response.status === 401) {
+        return new Response(JSON.stringify({ 
+          error: 'Invalid OpenAI API key. Please check that your API key is correctly configured.',
+          errorType: 'invalid_api_key'
+        }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
       throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
@@ -97,7 +135,8 @@ Instructions:
     console.error('Error in chat-assistant function:', error);
     return new Response(JSON.stringify({ 
       error: error.message || 'An unexpected error occurred',
-      details: error.toString()
+      details: error.toString(),
+      errorType: 'general_error'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
