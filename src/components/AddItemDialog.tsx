@@ -25,6 +25,8 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
     lowStockThreshold: "",
     sku: "",
     location: "",
+    vendor: "",
+    barcode: "",
   });
   const [newCategory, setNewCategory] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
@@ -50,6 +52,8 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
       lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
       sku: formData.sku || `SKU-${Date.now()}`,
       location: formData.location || "Not specified",
+      vendor: formData.vendor || "Not specified",
+      barcode: formData.barcode || "",
     });
 
     toast({
@@ -66,6 +70,8 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
       lowStockThreshold: "",
       sku: "",
       location: "",
+      vendor: "",
+      barcode: "",
     });
     onOpenChange(false);
   };
@@ -85,7 +91,7 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] bg-white">
+      <DialogContent className="sm:max-w-[500px] bg-white max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900">Add New Item</DialogTitle>
         </DialogHeader>
@@ -171,6 +177,32 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
                   </Button>
                 </div>
               )}
+            </div>
+
+            <div>
+              <Label htmlFor="vendor" className="text-sm font-medium text-gray-700">
+                Vendor
+              </Label>
+              <Input
+                id="vendor"
+                value={formData.vendor}
+                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+                placeholder="Enter vendor name"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="barcode" className="text-sm font-medium text-gray-700">
+                Barcode
+              </Label>
+              <Input
+                id="barcode"
+                value={formData.barcode}
+                onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                placeholder="Enter or scan barcode"
+                className="mt-1"
+              />
             </div>
 
             <div>

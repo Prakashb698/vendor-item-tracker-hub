@@ -12,6 +12,8 @@ export interface InventoryItem {
   lowStockThreshold: number;
   sku: string;
   location: string;
+  vendor: string;
+  barcode: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,6 +42,8 @@ export const useInventoryStore = create<InventoryStore>()(
           lowStockThreshold: 10,
           sku: 'COF-001',
           location: 'A1-S2',
+          vendor: 'Local Farms Co.',
+          barcode: '123456789012',
           createdAt: new Date('2024-01-15'),
           updatedAt: new Date('2024-01-15'),
         },
@@ -53,6 +57,8 @@ export const useInventoryStore = create<InventoryStore>()(
           lowStockThreshold: 8,
           sku: 'HON-001',
           location: 'B2-S1',
+          vendor: 'Bee Natural Inc.',
+          barcode: '234567890123',
           createdAt: new Date('2024-01-16'),
           updatedAt: new Date('2024-01-16'),
         },
@@ -66,6 +72,8 @@ export const useInventoryStore = create<InventoryStore>()(
           lowStockThreshold: 15,
           sku: 'SOAP-001',
           location: 'C1-S3',
+          vendor: 'Artisan Soaps Ltd.',
+          barcode: '345678901234',
           createdAt: new Date('2024-01-17'),
           updatedAt: new Date('2024-01-17'),
         },

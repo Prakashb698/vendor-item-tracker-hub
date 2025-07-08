@@ -209,8 +209,9 @@ export const useZebraScanner = () => {
 
     console.log("Scanned barcode:", barcode);
     
-    // Try to find item by SKU or name match
+    // Try to find item by barcode first, then SKU, then name match
     const foundItem = items.find(item => 
+      item.barcode === barcode || 
       item.sku === barcode || 
       item.name.toLowerCase().includes(barcode.toLowerCase())
     );

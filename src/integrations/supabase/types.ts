@@ -38,6 +38,7 @@ export type Database = {
       inventory_items: {
         Row: {
           barcode: string | null
+          barcode_number: string | null
           category: string
           created_at: string
           description: string | null
@@ -50,9 +51,11 @@ export type Database = {
           sku: string
           updated_at: string
           user_id: string
+          vendor: string | null
         }
         Insert: {
           barcode?: string | null
+          barcode_number?: string | null
           category: string
           created_at?: string
           description?: string | null
@@ -65,9 +68,11 @@ export type Database = {
           sku: string
           updated_at?: string
           user_id: string
+          vendor?: string | null
         }
         Update: {
           barcode?: string | null
+          barcode_number?: string | null
           category?: string
           created_at?: string
           description?: string | null
@@ -80,6 +85,7 @@ export type Database = {
           sku?: string
           updated_at?: string
           user_id?: string
+          vendor?: string | null
         }
         Relationships: []
       }

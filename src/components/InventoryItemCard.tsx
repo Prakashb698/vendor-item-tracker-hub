@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, Package, AlertTriangle, MapPin, ShoppingCart as ShoppingCartIcon } from "lucide-react";
+import { MoreHorizontal, Edit, Trash2, Package, AlertTriangle, MapPin, ShoppingCart as ShoppingCartIcon, Truck, BarChart3 } from "lucide-react";
 import { InventoryItem, useInventoryStore } from "@/store/inventoryStore";
 import { usePurchaseQueueStore } from "@/store/purchaseQueueStore";
 import { useAuth } from "@/contexts/AuthContext";
@@ -129,6 +129,22 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
             <span className="text-lg font-semibold text-gray-900">
               ${item.price.toFixed(2)}
             </span>
+          </div>
+
+          {/* Vendor and Barcode info */}
+          <div className="space-y-2">
+            {item.vendor && (
+              <div className="flex items-center gap-2">
+                <Truck className="h-4 w-4 text-gray-400" />
+                <span className="text-sm text-gray-600">{item.vendor}</span>
+              </div>
+            )}
+            {item.barcode && (
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-gray-400" />
+                <span className="text-sm text-gray-600 font-mono">{item.barcode}</span>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

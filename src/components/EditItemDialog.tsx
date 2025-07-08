@@ -26,6 +26,8 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
     lowStockThreshold: "",
     sku: "",
     location: "",
+    vendor: "",
+    barcode: "",
   });
 
   useEffect(() => {
@@ -39,6 +41,8 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
         lowStockThreshold: item.lowStockThreshold.toString(),
         sku: item.sku,
         location: item.location || "",
+        vendor: item.vendor || "",
+        barcode: item.barcode || "",
       });
     }
   }, [item]);
@@ -64,6 +68,8 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
       lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
       sku: formData.sku,
       location: formData.location || "Not specified",
+      vendor: formData.vendor || "Not specified",
+      barcode: formData.barcode || "",
     });
 
     toast({
@@ -76,7 +82,7 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] bg-white">
+      <DialogContent className="sm:max-w-[500px] bg-white max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900">Edit Item</DialogTitle>
         </DialogHeader>
@@ -130,6 +136,32 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="vendor" className="text-sm font-medium text-gray-700">
+                Vendor
+              </Label>
+              <Input
+                id="vendor"
+                value={formData.vendor}
+                onChange={(e) => setFormData({ ...formData, vendor: e.target.value })}
+                placeholder="Enter vendor name"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="barcode" className="text-sm font-medium text-gray-700">
+                Barcode
+              </Label>
+              <Input
+                id="barcode"
+                value={formData.barcode}
+                onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                placeholder="Enter or scan barcode"
+                className="mt-1"
+              />
             </div>
 
             <div>
