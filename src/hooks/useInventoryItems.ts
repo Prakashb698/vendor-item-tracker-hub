@@ -32,16 +32,12 @@ export const useInventoryItems = () => {
         throw new Error('User not authenticated');
       }
       
-      // Convert user ID to UUID format if it's not already
+      // For mock authentication, we'll create a mock UUID based on the user ID
       let userId = user.id;
-      if (userId === '1' || userId === '1' || !userId.includes('-')) {
-        // Generate a proper UUID for the user if they don't have one
-        const { data: authUser } = await supabase.auth.getUser();
-        if (authUser.user) {
-          userId = authUser.user.id;
-        } else {
-          throw new Error('Cannot get authenticated user UUID');
-        }
+      if (userId === '1') {
+        // Use a consistent mock UUID for user ID "1"
+        userId = '00000000-0000-0000-0000-000000000001';
+        console.log('Using mock UUID for user 1:', userId);
       }
       
       const { data, error } = await supabase
@@ -76,17 +72,18 @@ export const useAddInventoryItem = () => {
         throw new Error('User not authenticated');
       }
       
-      // Get the proper UUID from Supabase auth
-      const { data: authUser } = await supabase.auth.getUser();
-      if (!authUser.user) {
-        throw new Error('Cannot get authenticated user UUID');
+      // Use the same mock UUID logic
+      let userId = user.id;
+      if (userId === '1') {
+        userId = '00000000-0000-0000-0000-000000000001';
+        console.log('Using mock UUID for adding item:', userId);
       }
       
       const { data, error } = await supabase
         .from('inventory_items')
         .insert({
           ...item,
-          user_id: authUser.user.id,
+          user_id: userId,
         })
         .select()
         .single();
