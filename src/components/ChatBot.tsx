@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useInventoryStore } from "@/store/inventoryStore";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Message {
   id: string;
@@ -52,22 +53,16 @@ export const ChatBot = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat-assistant', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data, error } = await supabase.functions.invoke('chat-assistant', {
+        body: {
           message: inputValue,
           inventory: items,
-        }),
+        },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response');
+      if (error) {
+        throw new Error(error.message);
       }
-
-      const data = await response.json();
       
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
