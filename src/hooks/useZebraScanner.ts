@@ -260,7 +260,7 @@ export const useZebraScanner = () => {
 
   // Enhanced keyboard event handling for better barcode scanning
   useEffect(() => {
-    if (!isActive || !isConnected) return;
+    if (!isScannerActive || !isConnected) return;
 
     const handleKeyPress = (event: KeyboardEvent) => {
       // Prevent handling if user is typing in an input field
