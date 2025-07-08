@@ -1,10 +1,10 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, Filter, Upload, Scan, Trash2 } from "lucide-react";
-import { useInventoryItems, useDeleteInventoryItem } from "@/hooks/useInventoryItems";
-import { useInventoryCategories } from "@/hooks/useInventoryCategories";
+import { useInventoryStore } from "@/store/inventoryStore";
 import InventoryItemCard from "@/components/InventoryItemCard";
 import AddItemDialog from "@/components/AddItemDialog";
 import ImportItemsDialog from "@/components/ImportItemsDialog";
@@ -12,10 +12,7 @@ import BarcodeScanner from "@/components/BarcodeScanner";
 import { useZebraScanner } from "@/hooks/useZebraScanner";
 
 const Inventory = () => {
-  const { data: items = [], isLoading: itemsLoading } = useInventoryItems();
-  const { data: categories = [] } = useInventoryCategories();
-  const deleteItemMutation = useDeleteInventoryItem();
-  
+  const { items, categories, deleteItem } = useInventoryStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -59,7 +56,7 @@ const Inventory = () => {
       .join(', ');
     
     if (window.confirm(`Are you sure you want to delete ${selectedItems.length} items: ${itemNames}?`)) {
-      selectedItems.forEach(itemId => deleteItemMutation.mutate(itemId));
+      selectedItems.forEach(itemId => deleteItem(itemId));
       setSelectedItems([]);
       setIsMultiSelectMode(false);
     }
@@ -69,14 +66,6 @@ const Inventory = () => {
     setIsMultiSelectMode(!isMultiSelectMode);
     setSelectedItems([]);
   };
-
-  if (itemsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -119,6 +108,7 @@ const Inventory = () => {
         </div>
       </div>
 
+      {/* Multi-select actions */}
       {isMultiSelectMode && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -148,6 +138,7 @@ const Inventory = () => {
         </div>
       )}
 
+      {/* Zebra Scanner */}
       {showScanner && (
         <BarcodeScanner
           onScan={handleBarcodeScan}
@@ -156,6 +147,7 @@ const Inventory = () => {
         />
       )}
 
+      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg shadow-sm border">
         <div className="flex-1">
           <div className="relative">
@@ -176,11 +168,11 @@ const Inventory = () => {
                 <SelectValue placeholder="Category" />
               </div>
             </SelectTrigger>
-            <SelectContent className="bg-white border shadow-lg z-50 max-h-60 overflow-auto">
+            <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
               {categories.map((category) => (
-                <SelectItem key={category.id} value={category.name}>
-                  {category.name}
+                <SelectItem key={category} value={category}>
+                  {category}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -188,6 +180,7 @@ const Inventory = () => {
         </div>
       </div>
 
+      {/* Items Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.map((item) => (
           <InventoryItemCard 

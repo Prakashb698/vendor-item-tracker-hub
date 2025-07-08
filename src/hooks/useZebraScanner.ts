@@ -1,40 +1,46 @@
 
 import { useState, useCallback } from "react";
-import { useInventoryItems } from "@/hooks/useInventoryItems";
+import { useInventoryStore } from "@/store/inventoryStore";
 import { toast } from "@/hooks/use-toast";
 
 export const useZebraScanner = () => {
   const [isScannerActive, setIsScannerActive] = useState(false);
-  const [lastScannedBarcode, setLastScannedBarcode] = useState<string>("");
-  const { data: items = [] } = useInventoryItems();
+  const { items, updateItem } = useInventoryStore();
 
   const handleBarcodeScan = useCallback((barcode: string) => {
     console.log("Scanned barcode:", barcode);
-    setLastScannedBarcode(barcode);
     
-    // Try to find item by barcode first, then by SKU
+    // Try to find item by SKU or barcode
     const foundItem = items.find(item => 
-      item.barcode === barcode || 
-      item.sku === barcode
+      item.sku === barcode || 
+      item.name.toLowerCase().includes(barcode.toLowerCase())
     );
 
     if (foundItem) {
+      // Item found - you can implement different actions here
       toast({
         title: "Item Found",
-        description: `Found: ${foundItem.name} (Barcode: ${foundItem.barcode || foundItem.sku})`,
+        description: `Found: ${foundItem.name} (SKU: ${foundItem.sku})`,
       });
       
-      // Return the found item for further processing
-      return foundItem;
+      // Example: Increment quantity by 1 (for receiving inventory)
+      updateItem(foundItem.id, {
+        quantity: foundItem.quantity + 1
+      });
+      
+      toast({
+        title: "Quantity Updated",
+        description: `${foundItem.name} quantity increased to ${foundItem.quantity + 1}`,
+      });
     } else {
+      // Item not found
       toast({
         title: "Item Not Found",
         description: `No item found with barcode: ${barcode}`,
         variant: "destructive",
       });
-      return null;
     }
-  }, [items]);
+  }, [items, updateItem]);
 
   const toggleScanner = useCallback(() => {
     setIsScannerActive(prev => !prev);
@@ -44,7 +50,5 @@ export const useZebraScanner = () => {
     isScannerActive,
     toggleScanner,
     handleBarcodeScan,
-    lastScannedBarcode,
-    setLastScannedBarcode,
   };
 };
