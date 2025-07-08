@@ -16,16 +16,27 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Chat assistant function called');
+    
     const { message, inventory } = await req.json();
+    console.log('Received message:', message);
+    console.log('Inventory items count:', inventory?.length || 0);
 
     if (!openAIApiKey) {
+      console.error('OpenAI API key not configured');
       throw new Error('OpenAI API key not configured');
     }
 
+    if (!message) {
+      throw new Error('Message is required');
+    }
+
     // Create inventory context for the AI
-    const inventoryContext = inventory.map((item: any) => 
-      `${item.name} - ${item.description} (Category: ${item.category}, Price: $${item.price}, Quantity: ${item.quantity}, SKU: ${item.sku})`
-    ).join('\n');
+    const inventoryContext = inventory && inventory.length > 0 
+      ? inventory.map((item: any) => 
+          `${item.name} - ${item.description || 'No description'} (Category: ${item.category}, Price: $${item.price}, Quantity: ${item.quantity}, SKU: ${item.sku})`
+        ).join('\n')
+      : 'No inventory items available';
 
     const systemPrompt = `You are an intelligent inventory assistant for a business. Your job is to help customers find items in their inventory based on their queries.
 
@@ -41,9 +52,10 @@ Instructions:
 - You can search by category, price range, availability, or any other criteria
 - Format responses clearly and highlight important information like prices and availability
 - If asked about stock levels, be specific about quantities
+- Keep responses concise but informative
+- Always be helpful, friendly, and provide actionable information`;
 
-Always be helpful, friendly, and provide actionable information.`;
-
+    console.log('Making OpenAI API call');
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -61,12 +73,21 @@ Always be helpful, friendly, and provide actionable information.`;
       }),
     });
 
+    console.log('OpenAI response status:', response.status);
+
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error?.message || 'Failed to generate response');
+      const errorText = await response.text();
+      console.error('OpenAI API error:', errorText);
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('OpenAI response received');
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      throw new Error('Invalid response from OpenAI API');
+    }
+
     const aiResponse = data.choices[0].message.content;
 
     return new Response(JSON.stringify({ response: aiResponse }), {
@@ -74,7 +95,10 @@ Always be helpful, friendly, and provide actionable information.`;
     });
   } catch (error) {
     console.error('Error in chat-assistant function:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ 
+      error: error.message || 'An unexpected error occurred',
+      details: error.toString()
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

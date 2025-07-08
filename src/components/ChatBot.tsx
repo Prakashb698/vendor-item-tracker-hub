@@ -49,19 +49,30 @@ export const ChatBot = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageToSend = inputValue;
     setInputValue("");
     setIsLoading(true);
 
     try {
+      console.log('Sending message to chat assistant:', messageToSend);
+      console.log('Inventory items:', items.length);
+
       const { data, error } = await supabase.functions.invoke('chat-assistant', {
         body: {
-          message: inputValue,
+          message: messageToSend,
           inventory: items,
         },
       });
 
+      console.log('Supabase function response:', { data, error });
+
       if (error) {
+        console.error('Supabase function error:', error);
         throw new Error(error.message);
+      }
+
+      if (!data || !data.response) {
+        throw new Error('No response received from assistant');
       }
       
       const botMessage: Message = {
@@ -76,7 +87,7 @@ export const ChatBot = () => {
       console.error('Error sending message:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: "Sorry, I'm having trouble connecting right now. Please try again later.",
+        text: "Sorry, I'm having trouble connecting right now. Please try again later. If the problem persists, please check that the OpenAI API key is properly configured.",
         sender: 'bot',
         timestamp: new Date()
       };
@@ -91,6 +102,17 @@ export const ChatBot = () => {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const clearChat = () => {
+    setMessages([
+      {
+        id: '1',
+        text: "Hi! I'm your inventory assistant. I can help you find items, check availability, or answer questions about your inventory. What are you looking for?",
+        sender: 'bot',
+        timestamp: new Date()
+      }
+    ]);
   };
 
   if (!isOpen) {
@@ -112,13 +134,23 @@ export const ChatBot = () => {
           <Bot className="h-5 w-5 text-blue-600" />
           <h3 className="font-semibold">Inventory Assistant</h3>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsOpen(false)}
-        >
-          <X className="h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearChat}
+            className="text-xs"
+          >
+            Clear
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsOpen(false)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
       </CardHeader>
       
       <CardContent className="flex-1 p-0 flex flex-col">
