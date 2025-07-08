@@ -41,7 +41,7 @@ export const useZebraScanner = () => {
   const [connectedDevice, setConnectedDevice] = useState<BluetoothDevice | null>(null);
   const { items, updateItem } = useInventoryStore();
 
-  // Check for Bluetooth scanner connection
+  // Check for Zebra scanner connection
   const checkScannerConnection = useCallback(async () => {
     try {
       const bluetoothNav = navigator as BluetoothNavigator;
@@ -94,9 +94,30 @@ export const useZebraScanner = () => {
         try {
           console.log('Attempting Bluetooth connection...');
           
+          // Use specific filters for scanner devices to avoid showing unsupported devices
           const device = await bluetoothNav.bluetooth.requestDevice({
-            acceptAllDevices: true,
-            optionalServices: ['battery_service', 'device_information', 'human_interface_device']
+            filters: [
+              { namePrefix: 'Zebra' },
+              { namePrefix: 'Symbol' },
+              { namePrefix: 'Motorola' },
+              { namePrefix: 'Scanner' },
+              { namePrefix: 'TC' },
+              { namePrefix: 'MC' },
+              { namePrefix: 'DS' },
+              { namePrefix: 'LS' },
+              { namePrefix: 'LI' },
+              { namePrefix: 'CS' },
+              // Some scanners might show up with model numbers
+              { namePrefix: '2208' },
+              { namePrefix: '3608' }
+            ],
+            optionalServices: [
+              'battery_service', 
+              'device_information', 
+              'human_interface_device',
+              '00001812-0000-1000-8000-00805f9b34fb', // HID Service UUID
+              '0000180f-0000-1000-8000-00805f9b34fb'  // Battery Service UUID
+            ]
           });
           
           console.log('Found device:', device.name, device.id);
@@ -132,7 +153,7 @@ export const useZebraScanner = () => {
             if (bluetoothError.name === 'NotFoundError') {
               toast({
                 title: "No Scanner Found",
-                description: "No scanner found in pairing mode. Make sure your scanner is discoverable and try again.",
+                description: "No scanner found in pairing mode. Make sure your Zebra scanner is discoverable and try again.",
                 variant: "destructive",
               });
             } else if (bluetoothError.name === 'NotAllowedError') {
