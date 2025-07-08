@@ -20,11 +20,13 @@ interface BluetoothDevice {
   id: string;
   name?: string;
   gatt?: BluetoothRemoteGATT;
+  addEventListener?: (event: string, callback: () => void) => void;
 }
 
 interface BluetoothRemoteGATT {
   connected: boolean;
   connect(): Promise<BluetoothRemoteGATTServer>;
+  disconnect(): void;
 }
 
 interface BluetoothRemoteGATTServer {
@@ -52,7 +54,10 @@ export const useZebraScanner = () => {
             device.name?.toLowerCase().includes('zebra') || 
             device.name?.toLowerCase().includes('scanner') ||
             device.name?.toLowerCase().includes('symbol') ||
-            device.name?.toLowerCase().includes('motorola')
+            device.name?.toLowerCase().includes('motorola') ||
+            device.name?.toLowerCase().includes('tc') ||
+            device.name?.toLowerCase().includes('mc') ||
+            device.name?.toLowerCase().includes('ds')
           );
           
           if (zebraDevice && zebraDevice.gatt?.connected) {
@@ -90,25 +95,32 @@ export const useZebraScanner = () => {
           console.log('Attempting Bluetooth connection...');
           
           const device = await bluetoothNav.bluetooth.requestDevice({
-            filters: [
-              { namePrefix: 'Zebra' },
-              { namePrefix: 'Symbol' },
-              { namePrefix: 'Motorola' },
-              { namePrefix: 'Scanner' }
-            ],
-            optionalServices: ['battery_service', 'device_information']
+            acceptAllDevices: true,
+            optionalServices: ['battery_service', 'device_information', 'human_interface_device']
           });
           
-          console.log('Found device:', device.name);
+          console.log('Found device:', device.name, device.id);
           
           if (device.gatt) {
-            await device.gatt.connect();
+            const server = await device.gatt.connect();
             setIsConnected(true);
             setConnectionStatus('connected');
             setConnectedDevice(device);
+            
+            // Listen for disconnection
+            if (device.addEventListener) {
+              device.addEventListener('gattserverdisconnected', () => {
+                console.log('Scanner disconnected');
+                setIsConnected(false);
+                setConnectionStatus('disconnected');
+                setConnectedDevice(null);
+                setIsScannerActive(false);
+              });
+            }
+            
             toast({
               title: "Scanner Connected",
-              description: `Connected to ${device.name || 'Bluetooth Scanner'}`,
+              description: `Connected to ${device.name || 'Bluetooth Scanner'}. Scanner is now ready for use.`,
             });
             return;
           }
@@ -120,7 +132,7 @@ export const useZebraScanner = () => {
             if (bluetoothError.name === 'NotFoundError') {
               toast({
                 title: "No Scanner Found",
-                description: "No Zebra scanner found. Make sure it's in pairing mode and try again.",
+                description: "No scanner found in pairing mode. Make sure your scanner is discoverable and try again.",
                 variant: "destructive",
               });
             } else if (bluetoothError.name === 'NotAllowedError') {
@@ -132,7 +144,7 @@ export const useZebraScanner = () => {
             } else {
               toast({
                 title: "Bluetooth Connection Failed",
-                description: "Try pairing your scanner manually via system Bluetooth settings first.",
+                description: "Failed to connect via Bluetooth. Falling back to keyboard wedge mode.",
                 variant: "destructive",
               });
             }
@@ -141,7 +153,7 @@ export const useZebraScanner = () => {
       } else {
         toast({
           title: "Bluetooth Not Supported",
-          description: "Your browser doesn't support Web Bluetooth. Make sure your scanner is paired via system settings.",
+          description: "Your browser doesn't support Web Bluetooth. Using keyboard wedge mode instead.",
           variant: "destructive",
         });
       }
@@ -150,8 +162,8 @@ export const useZebraScanner = () => {
       setIsConnected(true);
       setConnectionStatus('connected');
       toast({
-        title: "Scanner Ready",
-        description: "Scanner ready in keyboard wedge mode. Make sure your Zebra scanner is paired via Bluetooth settings.",
+        title: "Scanner Ready (Keyboard Mode)",
+        description: "Scanner ready in keyboard wedge mode. Make sure your Zebra scanner is paired via Bluetooth settings and set to keyboard wedge mode.",
       });
       
     } catch (error) {
@@ -160,7 +172,7 @@ export const useZebraScanner = () => {
       setIsConnected(false);
       toast({
         title: "Connection Failed",
-        description: "Could not connect to scanner. Please check Bluetooth pairing.",
+        description: "Could not connect to scanner. Please check Bluetooth pairing and scanner settings.",
         variant: "destructive",
       });
     }
