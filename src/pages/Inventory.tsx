@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +20,15 @@ const Inventory = () => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   
-  const { isScannerActive, toggleScanner, handleBarcodeScan } = useZebraScanner();
+  const { 
+    isScannerActive, 
+    isConnected, 
+    connectionStatus, 
+    toggleScanner, 
+    connectScanner, 
+    disconnectScanner, 
+    handleBarcodeScan 
+  } = useZebraScanner();
 
   const filteredItems = items.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -143,7 +150,11 @@ const Inventory = () => {
         <BarcodeScanner
           onScan={handleBarcodeScan}
           isActive={isScannerActive}
+          isConnected={isConnected}
+          connectionStatus={connectionStatus}
           onToggle={toggleScanner}
+          onConnect={connectScanner}
+          onDisconnect={disconnectScanner}
         />
       )}
 
