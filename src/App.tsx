@@ -15,6 +15,7 @@ import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
 import Pricing from "./pages/Pricing";
+import Settings from "./pages/Settings";
 import AdminDashboard from "./pages/AdminDashboard";
 import CustomerPortal from "./pages/CustomerPortal";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -103,6 +104,7 @@ const AppContent = () => {
               
               {/* Common Routes */}
               <Route path="/pricing" element={<Pricing />} />
+              <Route path="/settings" element={<Settings />} />
               <Route path="/payment-success" element={<PaymentSuccess />} />
               <Route path="/payment-cancelled" element={<PaymentCancelled />} />
               <Route path="*" element={<NotFound />} />

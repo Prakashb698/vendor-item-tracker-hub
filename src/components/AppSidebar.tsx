@@ -26,7 +26,8 @@ export function AppSidebar() {
     { title: "Inventory", url: "/inventory", icon: Package },
     { title: "Categories", url: "/categories", icon: FolderOpen },
     { title: "Reports", url: "/reports", icon: FileText },
-    { title: "System Settings", url: "/settings", icon: Settings },
+    { title: "Pricing", url: "/pricing", icon: DollarSign },
+    { title: "Settings", url: "/settings", icon: Settings },
   ];
 
   const customerItems = [
@@ -34,6 +35,7 @@ export function AppSidebar() {
     { title: "My Inventory", url: "/inventory", icon: Package },
     { title: "Reports", url: "/reports", icon: FileText },
     { title: "Pricing", url: "/pricing", icon: DollarSign },
+    { title: "Settings", url: "/settings", icon: Settings },
   ];
 
   const items = user?.role === 'admin' ? adminItems : customerItems;
