@@ -48,11 +48,21 @@ const Inventory = () => {
     return matchesSearch && matchesCategory;
   });
 
-  // Modified barcode scan handler for add item workflow
+  // Handler specifically for adding new items - only sets barcode
   const handleBarcodeForAddItem = (barcode: string) => {
     console.log("Barcode scanned for new item:", barcode);
     setScannedBarcodeForAdd(barcode);
-    setIsAddDialogOpen(true);
+    if (!isAddDialogOpen) {
+      setIsAddDialogOpen(true);
+    }
+  };
+
+  // Determine which scan handler to use based on current mode
+  const getCurrentScanHandler = () => {
+    if (isAddDialogOpen) {
+      return handleBarcodeForAddItem;
+    }
+    return handleBarcodeScan;
   };
 
   const handleSelectItem = (itemId: string) => {
@@ -165,7 +175,7 @@ const Inventory = () => {
       {/* Zebra Scanner */}
       {showScanner && (
         <BarcodeScanner
-          onScan={isAddDialogOpen ? handleBarcodeForAddItem : handleBarcodeScan}
+          onScan={getCurrentScanHandler()}
           isActive={isScannerActive}
           isConnected={isConnected}
           connectionStatus={connectionStatus}
