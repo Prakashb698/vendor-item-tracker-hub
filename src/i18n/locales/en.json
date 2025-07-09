@@ -51,6 +51,26 @@
     "outOfStock": "Out of Stock",
     "lastUpdated": "Last updated"
   },
+  "inventoryItems": {
+    "premiumCoffeeBeans": {
+      "name": "Premium Coffee Beans",
+      "description": "High-quality arabica coffee beans sourced from Colombia"
+    },
+    "organicHoney": {
+      "name": "Organic Honey",
+      "description": "Pure organic honey from local beekeepers"
+    },
+    "handmadeSoap": {
+      "name": "Handmade Soap",
+      "description": "Natural handmade soap with essential oils"
+    },
+    "categories": {
+      "food": "Food & Beverage",
+      "health": "Health & Beauty",
+      "electronics": "Electronics",
+      "clothing": "Clothing"
+    }
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your account settings and preferences",

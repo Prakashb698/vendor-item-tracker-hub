@@ -51,6 +51,26 @@
     "outOfStock": "Rupture de Stock",
     "lastUpdated": "Dernière mise à jour"
   },
+  "inventoryItems": {
+    "premiumCoffeeBeans": {
+      "name": "Grains de Café Premium",
+      "description": "Grains de café arabica de haute qualité provenant de Colombie"
+    },
+    "organicHoney": {
+      "name": "Miel Biologique",
+      "description": "Miel biologique pur d'apiculteurs locaux"
+    },
+    "handmadeSoap": {
+      "name": "Savon Fait Main",
+      "description": "Savon naturel fait main avec des huiles essentielles"
+    },
+    "categories": {
+      "food": "Alimentation et Boissons",
+      "health": "Santé et Beauté",
+      "electronics": "Électronique",
+      "clothing": "Vêtements"
+    }
+  },
   "settings": {
     "title": "Paramètres",
     "subtitle": "Gérez les paramètres de votre compte et vos préférences",

@@ -11,10 +11,12 @@ import ImportItemsDialog from "@/components/ImportItemsDialog";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import { useZebraScanner } from "@/hooks/useZebraScanner";
 import { useTranslation } from "react-i18next";
+import { useTranslatedInventory } from "@/hooks/useTranslatedInventory";
 
 const Inventory = () => {
   const { t } = useTranslation();
   const { items, categories, deleteItem } = useInventoryStore();
+  const { translateItems, translateCategories } = useTranslatedInventory();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -33,10 +35,15 @@ const Inventory = () => {
     handleBarcodeScan 
   } = useZebraScanner();
 
-  const filteredItems = items.filter((item) => {
+  // Get translated items and categories
+  const translatedItems = translateItems(items);
+  const translatedCategories = translateCategories(categories);
+
+  const filteredItems = translatedItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || item.category === selectedCategory;
+    const matchesCategory = selectedCategory === "all" || item.category === translatedCategories[categories.indexOf(selectedCategory)] || 
+                           categories[translatedCategories.indexOf(selectedCategory)] === selectedCategory;
     
     return matchesSearch && matchesCategory;
   });
@@ -184,8 +191,8 @@ const Inventory = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('inventory.allCategories')}</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
+              {translatedCategories.map((category, index) => (
+                <SelectItem key={categories[index]} value={categories[index]}>
                   {category}
                 </SelectItem>
               ))}

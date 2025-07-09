@@ -51,6 +51,26 @@
     "outOfStock": "Nicht Vorrätig",
     "lastUpdated": "Zuletzt aktualisiert"
   },
+  "inventoryItems": {
+    "premiumCoffeeBeans": {
+      "name": "Premium Kaffeebohnen",
+      "description": "Hochwertige Arabica-Kaffeebohnen aus Kolumbien"
+    },
+    "organicHoney": {
+      "name": "Bio-Honig",
+      "description": "Reiner Bio-Honig von lokalen Imkern"
+    },
+    "handmadeSoap": {
+      "name": "Handgemachte Seife",
+      "description": "Natürliche handgemachte Seife mit ätherischen Ölen"
+    },
+    "categories": {
+      "food": "Lebensmittel & Getränke",
+      "health": "Gesundheit & Schönheit",
+      "electronics": "Elektronik",
+      "clothing": "Kleidung"
+    }
+  },
   "settings": {
     "title": "Einstellungen",
     "subtitle": "Verwalten Sie Ihre Kontoeinstellungen und Präferenzen",

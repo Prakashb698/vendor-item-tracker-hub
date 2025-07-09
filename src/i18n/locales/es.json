@@ -51,6 +51,26 @@
     "outOfStock": "Sin Stock",
     "lastUpdated": "Última actualización"
   },
+  "inventoryItems": {
+    "premiumCoffeeBeans": {
+      "name": "Granos de Café Premium",
+      "description": "Granos de café arábica de alta calidad procedentes de Colombia"
+    },
+    "organicHoney": {
+      "name": "Miel Orgánica",
+      "description": "Miel orgánica pura de apicultores locales"
+    },
+    "handmadeSoap": {
+      "name": "Jabón Hecho a Mano",
+      "description": "Jabón natural hecho a mano con aceites esenciales"
+    },
+    "categories": {
+      "food": "Comida y Bebida",
+      "health": "Salud y Belleza",
+      "electronics": "Electrónicos",
+      "clothing": "Ropa"
+    }
+  },
   "settings": {
     "title": "Configuración",
     "subtitle": "Gestiona la configuración de tu cuenta y preferencias",
