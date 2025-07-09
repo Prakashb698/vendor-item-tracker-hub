@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,9 +11,10 @@ import { toast } from "@/hooks/use-toast";
 interface AddItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  scannedBarcode?: string;
 }
 
-const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
+const AddItemDialog = ({ open, onOpenChange, scannedBarcode }: AddItemDialogProps) => {
   const { addItem, categories, addCategory } = useInventoryStore();
   const [formData, setFormData] = useState({
     name: "",
@@ -30,6 +30,13 @@ const AddItemDialog = ({ open, onOpenChange }: AddItemDialogProps) => {
   });
   const [newCategory, setNewCategory] = useState("");
   const [isAddingCategory, setIsAddingCategory] = useState(false);
+
+  // Update barcode field when scanned barcode is provided
+  useEffect(() => {
+    if (scannedBarcode && open) {
+      setFormData(prev => ({ ...prev, barcode: scannedBarcode }));
+    }
+  }, [scannedBarcode, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

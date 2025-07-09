@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +23,7 @@ const Inventory = () => {
   const [showScanner, setShowScanner] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
+  const [scannedBarcodeForAdd, setScannedBarcodeForAdd] = useState<string>("");
   
   const { 
     isScannerActive, 
@@ -47,6 +47,13 @@ const Inventory = () => {
     
     return matchesSearch && matchesCategory;
   });
+
+  // Modified barcode scan handler for add item workflow
+  const handleBarcodeForAddItem = (barcode: string) => {
+    console.log("Barcode scanned for new item:", barcode);
+    setScannedBarcodeForAdd(barcode);
+    setIsAddDialogOpen(true);
+  };
 
   const handleSelectItem = (itemId: string) => {
     setSelectedItems(prev => 
@@ -158,7 +165,7 @@ const Inventory = () => {
       {/* Zebra Scanner */}
       {showScanner && (
         <BarcodeScanner
-          onScan={handleBarcodeScan}
+          onScan={isAddDialogOpen ? handleBarcodeForAddItem : handleBarcodeScan}
           isActive={isScannerActive}
           isConnected={isConnected}
           connectionStatus={connectionStatus}
@@ -248,7 +255,16 @@ const Inventory = () => {
         </div>
       )}
 
-      <AddItemDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+      <AddItemDialog 
+        open={isAddDialogOpen} 
+        onOpenChange={(open) => {
+          setIsAddDialogOpen(open);
+          if (!open) {
+            setScannedBarcodeForAdd("");
+          }
+        }}
+        scannedBarcode={scannedBarcodeForAdd}
+      />
       <ImportItemsDialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen} />
     </div>
   );
