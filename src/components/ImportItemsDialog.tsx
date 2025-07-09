@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useInventoryStore } from "@/store/inventoryStore";
 import { toast } from "@/hooks/use-toast";
-import { Upload, Download, FileText } from "lucide-react";
+import { Upload, Download, FileText, AlertCircle } from "lucide-react";
 
 interface ImportItemsDialogProps {
   open: boolean;
@@ -17,38 +17,195 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
   const { addItem } = useInventoryStore();
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [previewItems, setPreviewItems] = useState<any[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
+      setShowPreview(false);
+      setPreviewItems([]);
     }
   };
 
   const parseCSV = (text: string) => {
-    const lines = text.trim().split('\n');
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+    console.log("Raw CSV text:", text);
+    
+    const lines = text.trim().split('\n').filter(line => line.trim() !== '');
+    
+    if (lines.length < 2) {
+      throw new Error("CSV file must have at least a header row and one data row");
+    }
+
+    // Parse headers - handle quoted values and commas
+    const headerLine = lines[0];
+    const headers = parseCSVLine(headerLine).map(h => 
+      h.toLowerCase()
+        .replace(/\s+/g, '')
+        .replace(/['"]/g, '')
+    );
+    
+    console.log("Parsed headers:", headers);
+
     const items = [];
 
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-      const item: any = {};
-      
-      headers.forEach((header, index) => {
-        item[header.toLowerCase().replace(/\s+/g, '')] = values[index] || '';
-      });
-      
-      items.push(item);
+      try {
+        const values = parseCSVLine(lines[i]);
+        const item: any = {};
+        
+        // Map each header to its corresponding value
+        headers.forEach((header, index) => {
+          const value = values[index] || '';
+          item[header] = value.replace(/['"]/g, '').trim();
+        });
+        
+        console.log(`Parsed item ${i}:`, item);
+        items.push(item);
+      } catch (error) {
+        console.error(`Error parsing line ${i + 1}:`, error);
+        // Continue with other lines
+      }
     }
     
     return items;
   };
 
-  const handleImport = async () => {
+  // Enhanced CSV line parser that handles quoted fields with commas
+  const parseCSVLine = (line: string): string[] => {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        result.push(current);
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+    
+    result.push(current);
+    return result;
+  };
+
+  const validateAndMapItem = (item: any) => {
+    console.log("Validating item:", item);
+    
+    // Map common field variations to our expected fields
+    const fieldMappings = {
+      name: ['name', 'productname', 'product', 'title', 'itemname'],
+      description: ['description', 'desc', 'details'],
+      category: ['category', 'cat', 'type'],
+      quantity: ['quantity', 'qty', 'stock', 'amount'],
+      price: ['price', 'cost', 'unitprice'],
+      lowstockthreshold: ['lowstockthreshold', 'threshold', 'minstock', 'reorderpoint'],
+      sku: ['sku', 'code', 'productcode', 'itemcode'],
+      location: ['location', 'loc', 'warehouse', 'shelf'],
+      vendor: ['vendor', 'supplier', 'manufacturer'],
+      barcode: ['barcode', 'barcodenumber', 'upc', 'ean']
+    };
+
+    const mappedItem: any = {};
+
+    // Map fields using the field mappings
+    Object.keys(fieldMappings).forEach(targetField => {
+      const possibleFields = fieldMappings[targetField as keyof typeof fieldMappings];
+      
+      for (const field of possibleFields) {
+        if (item[field] !== undefined && item[field] !== '') {
+          mappedItem[targetField] = item[field];
+          break;
+        }
+      }
+    });
+
+    console.log("Mapped item:", mappedItem);
+
+    // Validate required fields
+    if (!mappedItem.name || mappedItem.name.trim() === '') {
+      throw new Error("Item name is required");
+    }
+
+    // Set defaults for missing fields
+    return {
+      name: mappedItem.name.trim(),
+      description: mappedItem.description || '',
+      category: mappedItem.category || 'Uncategorized',
+      quantity: parseInt(mappedItem.quantity) || 0,
+      price: parseFloat(mappedItem.price) || 0,
+      lowStockThreshold: parseInt(mappedItem.lowstockthreshold) || 5,
+      sku: mappedItem.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      location: mappedItem.location || 'Not specified',
+      vendor: mappedItem.vendor || 'Not specified',
+      barcode: mappedItem.barcode || '',
+    };
+  };
+
+  const handlePreview = async () => {
     if (!file) {
       toast({
         title: "No File Selected",
-        description: "Please select a CSV or Excel file to import.",
+        description: "Please select a CSV file to preview.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const rawItems = parseCSV(text);
+      
+      const validatedItems = [];
+      const errors = [];
+
+      for (let i = 0; i < rawItems.length; i++) {
+        try {
+          const validatedItem = validateAndMapItem(rawItems[i]);
+          validatedItems.push(validatedItem);
+        } catch (error) {
+          errors.push(`Row ${i + 2}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      if (errors.length > 0) {
+        console.log("Validation errors:", errors);
+        toast({
+          title: "Some Items Have Issues",
+          description: `${errors.length} items have validation errors. Check the preview.`,
+          variant: "destructive",
+        });
+      }
+
+      setPreviewItems(validatedItems);
+      setShowPreview(true);
+      
+      toast({
+        title: "Preview Ready",
+        description: `${validatedItems.length} items ready for import.`,
+      });
+
+    } catch (error) {
+      console.error('Preview error:', error);
+      toast({
+        title: "Preview Failed",
+        description: error instanceof Error ? error.message : "Failed to preview items. Please check your file format.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleImport = async () => {
+    if (previewItems.length === 0) {
+      toast({
+        title: "No Items to Import",
+        description: "Please preview your file first.",
         variant: "destructive",
       });
       return;
@@ -57,27 +214,12 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
     setIsImporting(true);
 
     try {
-      const text = await file.text();
-      const items = parseCSV(text);
-      
       let importedCount = 0;
       
-      for (const item of items) {
-        if (item.name && item.price) {
-          addItem({
-            name: item.name || 'Unknown Item',
-            description: item.description || '',
-            category: item.category || 'Uncategorized',
-            quantity: parseInt(item.quantity) || 0,
-            price: parseFloat(item.price) || 0,
-            lowStockThreshold: parseInt(item.lowstockthreshold || item.threshold) || 5,
-            sku: item.sku || `SKU-${Date.now()}-${importedCount}`,
-            location: item.location || 'Not specified',
-            vendor: item.vendor || 'Not specified',
-            barcode: item.barcode || item.barcodenumber || '',
-          });
-          importedCount++;
-        }
+      for (const item of previewItems) {
+        console.log("Importing item:", item);
+        addItem(item);
+        importedCount++;
       }
 
       toast({
@@ -86,12 +228,14 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
       });
 
       setFile(null);
+      setPreviewItems([]);
+      setShowPreview(false);
       onOpenChange(false);
     } catch (error) {
       console.error('Import error:', error);
       toast({
         title: "Import Failed",
-        description: "Failed to import items. Please check your file format.",
+        description: "Failed to import items. Please try again.",
         variant: "destructive",
       });
     }
@@ -142,7 +286,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] bg-white">
+      <DialogContent className="sm:max-w-[600px] bg-white max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-gray-900">Import Items</DialogTitle>
         </DialogHeader>
@@ -166,7 +310,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
               <Input
                 id="file"
                 type="file"
-                accept=".csv,.xlsx,.xls"
+                accept=".csv"
                 onChange={handleFileChange}
                 className="mt-1"
               />
@@ -186,8 +330,34 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
                 <Download className="h-4 w-4 mr-2" />
                 Download Template
               </Button>
+              
+              <Button
+                onClick={handlePreview}
+                disabled={!file}
+                variant="outline"
+                className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50"
+              >
+                <AlertCircle className="h-4 w-4 mr-2" />
+                Preview Items
+              </Button>
             </div>
           </div>
+
+          {showPreview && previewItems.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="font-medium text-gray-900">Preview ({previewItems.length} items)</h3>
+              <div className="max-h-48 overflow-y-auto border rounded-lg p-3 bg-gray-50">
+                {previewItems.slice(0, 5).map((item, index) => (
+                  <div key={index} className="text-sm mb-2 p-2 bg-white rounded border">
+                    <strong>{item.name}</strong> - {item.category} - ${item.price} - Qty: {item.quantity}
+                  </div>
+                ))}
+                {previewItems.length > 5 && (
+                  <p className="text-sm text-gray-600">...and {previewItems.length - 5} more items</p>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-4">
             <Button 
@@ -199,11 +369,11 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
             </Button>
             <Button 
               onClick={handleImport}
-              disabled={!file || isImporting}
+              disabled={previewItems.length === 0 || isImporting}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Upload className="h-4 w-4 mr-2" />
-              {isImporting ? 'Importing...' : 'Import Items'}
+              {isImporting ? 'Importing...' : `Import ${previewItems.length} Items`}
             </Button>
           </div>
         </div>
