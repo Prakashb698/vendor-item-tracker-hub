@@ -6,6 +6,7 @@ import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import PurchaseQueue from "./PurchaseQueue";
 import { MLChatBot } from "./MLChatBot";
+import { useTranslation } from "react-i18next";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
 
   return (
     <>
@@ -22,7 +24,7 @@ const Layout = ({ children }: LayoutProps) => {
           <div className="flex items-center gap-4">
             <SidebarTrigger className="text-gray-600 hover:text-gray-900" />
             <h1 className="text-xl font-semibold text-gray-900">
-              {user?.role === 'admin' ? 'Admin Panel' : 'Customer Portal'}
+              {user?.role === 'admin' ? t('common.adminPanel') : t('common.customerPortal')}
             </h1>
           </div>
           <div className="flex items-center gap-4">
@@ -38,7 +40,7 @@ const Layout = ({ children }: LayoutProps) => {
               className="flex items-center gap-2"
             >
               <LogOut className="h-4 w-4" />
-              Sign Out
+              {t('common.signOut')}
             </Button>
           </div>
         </header>

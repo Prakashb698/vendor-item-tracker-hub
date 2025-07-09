@@ -23,6 +23,9 @@ const Settings = () => {
     phone: "",
     address: "",
   });
+  
+  // Local state for language selection - only changes when saved
+  const [selectedLanguage, setSelectedLanguage] = useState(i18n.language);
 
   const handleProfileSave = () => {
     // In a real app, this would save to the backend
@@ -32,8 +35,9 @@ const Settings = () => {
     });
   };
 
-  const handleLanguageChange = (newLanguage: string) => {
-    i18n.changeLanguage(newLanguage);
+  const handlePreferencesSave = () => {
+    // Only change language when Save Changes is clicked
+    i18n.changeLanguage(selectedLanguage);
     toast({
       title: t('settings.preferencesUpdated'),
       description: t('settings.preferencesUpdateSuccess'),
@@ -171,7 +175,7 @@ const Settings = () => {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="language">{t('settings.language')}</Label>
-                <Select value={i18n.language} onValueChange={handleLanguageChange}>
+                <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -185,7 +189,7 @@ const Settings = () => {
                 </Select>
               </div>
               <div className="flex justify-end">
-                <Button className="flex items-center gap-2" disabled>
+                <Button onClick={handlePreferencesSave} className="flex items-center gap-2">
                   <Globe className="h-4 w-4" />
                   {t('settings.savePreferences')}
                 </Button>

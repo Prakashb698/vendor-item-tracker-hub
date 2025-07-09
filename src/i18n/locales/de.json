@@ -8,7 +8,10 @@
     "search": "Suchen",
     "loading": "Wird geladen...",
     "error": "Fehler",
-    "success": "Erfolg"
+    "success": "Erfolg",
+    "adminPanel": "Admin-Panel",
+    "customerPortal": "Kundenportal",
+    "signOut": "Abmelden"
   },
   "navigation": {
     "dashboard": "Dashboard",
