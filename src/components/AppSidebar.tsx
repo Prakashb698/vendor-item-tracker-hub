@@ -13,29 +13,31 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const location = useLocation();
   const currentPath = location.pathname;
 
   const adminItems = [
-    { title: "Admin Dashboard", url: "/dashboard", icon: Shield },
-    { title: "User Management", url: "/users", icon: Users },
-    { title: "Inventory", url: "/inventory", icon: Package },
-    { title: "Categories", url: "/categories", icon: FolderOpen },
-    { title: "Reports", url: "/reports", icon: FileText },
-    { title: "Pricing", url: "/pricing", icon: DollarSign },
-    { title: "Settings", url: "/settings", icon: Settings },
+    { title: t('navigation.adminDashboard'), url: "/dashboard", icon: Shield },
+    { title: t('navigation.userManagement'), url: "/users", icon: Users },
+    { title: t('navigation.inventory'), url: "/inventory", icon: Package },
+    { title: t('navigation.categories'), url: "/categories", icon: FolderOpen },
+    { title: t('navigation.reports'), url: "/reports", icon: FileText },
+    { title: t('navigation.pricing'), url: "/pricing", icon: DollarSign },
+    { title: t('navigation.settings'), url: "/settings", icon: Settings },
   ];
 
   const customerItems = [
-    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-    { title: "My Inventory", url: "/inventory", icon: Package },
-    { title: "Reports", url: "/reports", icon: FileText },
-    { title: "Pricing", url: "/pricing", icon: DollarSign },
-    { title: "Settings", url: "/settings", icon: Settings },
+    { title: t('navigation.dashboard'), url: "/dashboard", icon: LayoutDashboard },
+    { title: t('navigation.myInventory'), url: "/inventory", icon: Package },
+    { title: t('navigation.reports'), url: "/reports", icon: FileText },
+    { title: t('navigation.pricing'), url: "/pricing", icon: DollarSign },
+    { title: t('navigation.settings'), url: "/settings", icon: Settings },
   ];
 
   const items = user?.role === 'admin' ? adminItems : customerItems;
@@ -60,7 +62,7 @@ export function AppSidebar() {
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">Dynamic Tracking</h2>
                 <p className="text-xs text-gray-500">
-                  {user?.role === 'admin' ? 'Admin Panel' : 'Customer Portal'}
+                  {user?.role === 'admin' ? t('common.adminPanel') : t('common.customerPortal')}
                 </p>
               </div>
             )}
@@ -101,7 +103,7 @@ export function AppSidebar() {
                 ? 'bg-red-100 text-red-800' 
                 : 'bg-blue-100 text-blue-800'
             }`}>
-              {user?.role === 'admin' ? '🛡️ Administrator' : '👤 Customer'}
+              {user?.role === 'admin' ? `🛡️ ${t('settings.administrator')}` : `👤 ${t('settings.customer')}`}
             </div>
           </div>
         )}

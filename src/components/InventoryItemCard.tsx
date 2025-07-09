@@ -10,6 +10,7 @@ import { usePurchaseQueueStore } from "@/store/purchaseQueueStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import EditItemDialog from "./EditItemDialog";
+import { useTranslation } from "react-i18next";
 
 interface InventoryItemCardProps {
   item: InventoryItem;
@@ -19,6 +20,7 @@ interface InventoryItemCardProps {
 }
 
 const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false, onSelect }: InventoryItemCardProps) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { deleteItem } = useInventoryStore();
   const { addItem } = usePurchaseQueueStore();
@@ -92,14 +94,14 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
                         className="cursor-pointer"
                       >
                         <Edit className="h-4 w-4 mr-2" />
-                        Edit
+                        {t('common.edit')}
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={handleDelete}
                         className="cursor-pointer text-red-600 focus:text-red-600"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
+                        {t('common.delete')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -149,15 +151,15 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Stock Level</span>
+              <span className="text-sm text-gray-600">{t('inventory.stockLevel')}</span>
               {isLowStock && <AlertTriangle className="h-4 w-4 text-red-500" />}
             </div>
             <div className="flex items-center justify-between">
               <Badge className={`${getStockColor()} border`}>
-                {item.quantity} units
+                {item.quantity} {t('inventory.units')}
               </Badge>
               <span className="text-xs text-gray-500">
-                Min: {item.lowStockThreshold}
+                {t('inventory.min')}: {item.lowStockThreshold}
               </span>
             </div>
           </div>
@@ -169,13 +171,13 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
               <ShoppingCartIcon className="h-4 w-4 mr-2" />
-              {item.quantity === 0 ? 'Out of Stock' : 'Add to Queue'}
+              {item.quantity === 0 ? t('inventory.outOfStock') : t('inventory.addToQueue')}
             </Button>
           )}
 
           <div className="pt-2 border-t border-gray-100">
             <div className="text-xs text-gray-500">
-              Last updated: {new Date(item.updatedAt).toLocaleDateString()}
+              {t('inventory.lastUpdated')}: {new Date(item.updatedAt).toLocaleDateString()}
             </div>
           </div>
         </CardContent>

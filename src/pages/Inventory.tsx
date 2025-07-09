@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,8 +10,10 @@ import AddItemDialog from "@/components/AddItemDialog";
 import ImportItemsDialog from "@/components/ImportItemsDialog";
 import BarcodeScanner from "@/components/BarcodeScanner";
 import { useZebraScanner } from "@/hooks/useZebraScanner";
+import { useTranslation } from "react-i18next";
 
 const Inventory = () => {
+  const { t } = useTranslation();
   const { items, categories, deleteItem } = useInventoryStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -78,8 +81,8 @@ const Inventory = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Inventory</h1>
-          <p className="text-gray-600">Manage your products and stock levels</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('inventory.title')}</h1>
+          <p className="text-gray-600">{t('inventory.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Button 
@@ -87,7 +90,7 @@ const Inventory = () => {
             variant="outline"
             className={`border-gray-200 ${isMultiSelectMode ? 'bg-gray-100 text-gray-900' : 'text-gray-700 hover:bg-gray-50'}`}
           >
-            {isMultiSelectMode ? 'Cancel Select' : 'Multi Select'}
+            {isMultiSelectMode ? t('inventory.cancelSelect') : t('inventory.multiSelect')}
           </Button>
           <Button 
             onClick={() => setShowScanner(!showScanner)}
@@ -95,7 +98,7 @@ const Inventory = () => {
             className="border-purple-200 text-purple-700 hover:bg-purple-50"
           >
             <Scan className="h-4 w-4 mr-2" />
-            {showScanner ? 'Hide Scanner' : 'Zebra Scanner'}
+            {showScanner ? t('inventory.hideScanner') : t('inventory.zebraScanner')}
           </Button>
           <Button 
             onClick={() => setIsImportDialogOpen(true)}
@@ -103,14 +106,14 @@ const Inventory = () => {
             className="border-blue-200 text-blue-700 hover:bg-blue-50"
           >
             <Upload className="h-4 w-4 mr-2" />
-            Import Items
+            {t('inventory.importItems')}
           </Button>
           <Button 
             onClick={() => setIsAddDialogOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Item
+            {t('inventory.addItem')}
           </Button>
         </div>
       </div>
@@ -125,10 +128,10 @@ const Inventory = () => {
               size="sm"
               className="border-blue-300 text-blue-700 hover:bg-blue-100"
             >
-              {selectedItems.length === filteredItems.length ? 'Deselect All' : 'Select All'}
+              {selectedItems.length === filteredItems.length ? t('inventory.deselectAll') : t('inventory.selectAll')}
             </Button>
             <span className="text-blue-700 font-medium">
-              {selectedItems.length} item{selectedItems.length !== 1 ? 's' : ''} selected
+              {selectedItems.length} {t('inventory.itemsSelected')}
             </span>
           </div>
           {selectedItems.length > 0 && (
@@ -139,7 +142,7 @@ const Inventory = () => {
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Delete Selected ({selectedItems.length})
+              {t('inventory.deleteSelected')} ({selectedItems.length})
             </Button>
           )}
         </div>
@@ -164,7 +167,7 @@ const Inventory = () => {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Search by name or SKU..."
+              placeholder={t('inventory.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 border-gray-200"
@@ -180,7 +183,7 @@ const Inventory = () => {
               </div>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="all">{t('inventory.allCategories')}</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -209,11 +212,11 @@ const Inventory = () => {
           <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Search className="h-10 w-10 text-gray-400" />
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No items found</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('inventory.noItemsFound')}</h3>
           <p className="text-gray-600 mb-4">
             {searchTerm || selectedCategory !== "all" 
-              ? "Try adjusting your search or filter criteria"
-              : "Get started by adding your first inventory item"
+              ? t('inventory.noItemsDescription')
+              : t('inventory.getStartedDescription')
             }
           </p>
           {!searchTerm && selectedCategory === "all" && (
@@ -224,14 +227,14 @@ const Inventory = () => {
                 className="border-blue-200 text-blue-700 hover:bg-blue-50"
               >
                 <Upload className="h-4 w-4 mr-2" />
-                Import from Excel/CSV
+                {t('inventory.importFromExcel')}
               </Button>
               <Button 
                 onClick={() => setIsAddDialogOpen(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Add Your First Item
+                {t('inventory.addFirstItem')}
               </Button>
             </div>
           )}
