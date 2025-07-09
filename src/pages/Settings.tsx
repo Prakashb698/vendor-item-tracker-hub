@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -13,8 +14,8 @@ import { User, Settings as SettingsIcon, CreditCard, History, Globe, LogOut, Sav
 import { toast } from "@/hooks/use-toast";
 
 const Settings = () => {
+  const { t, i18n } = useTranslation();
   const { user, signOut } = useAuth();
-  const [language, setLanguage] = useState("en");
   const [profileData, setProfileData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -26,16 +27,24 @@ const Settings = () => {
   const handleProfileSave = () => {
     // In a real app, this would save to the backend
     toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved successfully.",
+      title: t('settings.profileUpdated'),
+      description: t('settings.profileUpdateSuccess'),
+    });
+  };
+
+  const handleLanguageChange = (newLanguage: string) => {
+    i18n.changeLanguage(newLanguage);
+    toast({
+      title: t('settings.preferencesUpdated'),
+      description: t('settings.preferencesUpdateSuccess'),
     });
   };
 
   const handleSignOut = () => {
     signOut();
     toast({
-      title: "Signed Out",
-      description: "You have been successfully signed out.",
+      title: t('settings.signedOut'),
+      description: t('settings.signOutSuccess'),
     });
   };
 
@@ -46,98 +55,105 @@ const Settings = () => {
     { id: 3, date: "2024-01-05", type: "Purchase", amount: "$19.99", status: "Pending" },
   ];
 
+  const languageOptions = [
+    { value: "en", label: "English" },
+    { value: "es", label: "Español" },
+    { value: "fr", label: "Français" },
+    { value: "de", label: "Deutsch" },
+  ];
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Settings</h1>
-        <p className="text-gray-600">Manage your account settings and preferences</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{t('settings.title')}</h1>
+        <p className="text-gray-600">{t('settings.subtitle')}</p>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
-            Profile
+            {t('settings.profile')}
           </TabsTrigger>
           <TabsTrigger value="preferences" className="flex items-center gap-2">
             <SettingsIcon className="h-4 w-4" />
-            Preferences
+            {t('settings.preferences')}
           </TabsTrigger>
           <TabsTrigger value="payments" className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
-            Payments
+            {t('settings.payments')}
           </TabsTrigger>
           <TabsTrigger value="transactions" className="flex items-center gap-2">
             <History className="h-4 w-4" />
-            Transactions
+            {t('settings.transactions')}
           </TabsTrigger>
           <TabsTrigger value="account" className="flex items-center gap-2">
             <LogOut className="h-4 w-4" />
-            Account
+            {t('settings.account')}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
+              <CardTitle>{t('settings.profileInfo')}</CardTitle>
               <CardDescription>
-                Update your personal information and business details
+                {t('settings.profileDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="name">{t('settings.fullName')}</Label>
                   <Input
                     id="name"
                     value={profileData.name}
                     onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
-                    placeholder="Enter your full name"
+                    placeholder={t('settings.fullName')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
+                  <Label htmlFor="email">{t('settings.emailAddress')}</Label>
                   <Input
                     id="email"
                     type="email"
                     value={profileData.email}
                     onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                    placeholder="Enter your email"
+                    placeholder={t('settings.emailAddress')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="business">Business Name</Label>
+                  <Label htmlFor="business">{t('settings.businessName')}</Label>
                   <Input
                     id="business"
                     value={profileData.businessName}
                     onChange={(e) => setProfileData({ ...profileData, businessName: e.target.value })}
-                    placeholder="Enter your business name"
+                    placeholder={t('settings.businessName')}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone">{t('settings.phoneNumber')}</Label>
                   <Input
                     id="phone"
                     value={profileData.phone}
                     onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
-                    placeholder="Enter your phone number"
+                    placeholder={t('settings.phoneNumber')}
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">{t('settings.address')}</Label>
                 <Input
                   id="address"
                   value={profileData.address}
                   onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}
-                  placeholder="Enter your address"
+                  placeholder={t('settings.address')}
                 />
               </div>
               <div className="flex justify-end">
                 <Button onClick={handleProfileSave} className="flex items-center gap-2">
                   <Save className="h-4 w-4" />
-                  Save Changes
+                  {t('settings.saveChanges')}
                 </Button>
               </div>
             </CardContent>
@@ -147,30 +163,31 @@ const Settings = () => {
         <TabsContent value="preferences" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Language & Region</CardTitle>
+              <CardTitle>{t('settings.languageRegion')}</CardTitle>
               <CardDescription>
-                Set your preferred language and regional settings
+                {t('settings.languageDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="language">Language</Label>
-                <Select value={language} onValueChange={setLanguage}>
+                <Label htmlFor="language">{t('settings.language')}</Label>
+                <Select value={i18n.language} onValueChange={handleLanguageChange}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="en">English</SelectItem>
-                    <SelectItem value="es">Español</SelectItem>
-                    <SelectItem value="fr">Français</SelectItem>
-                    <SelectItem value="de">Deutsch</SelectItem>
+                    {languageOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex justify-end">
-                <Button className="flex items-center gap-2">
+                <Button className="flex items-center gap-2" disabled>
                   <Globe className="h-4 w-4" />
-                  Save Preferences
+                  {t('settings.savePreferences')}
                 </Button>
               </div>
             </CardContent>
@@ -180,9 +197,9 @@ const Settings = () => {
         <TabsContent value="payments" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Payment Methods</CardTitle>
+              <CardTitle>{t('settings.paymentMethods')}</CardTitle>
               <CardDescription>
-                Manage your payment methods and billing information
+                {t('settings.paymentDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -200,8 +217,8 @@ const Settings = () => {
               </div>
               <Separator />
               <div className="flex gap-2">
-                <Button variant="outline">Add Payment Method</Button>
-                <Button variant="outline">Manage Billing</Button>
+                <Button variant="outline">{t('settings.addPaymentMethod')}</Button>
+                <Button variant="outline">{t('settings.manageBilling')}</Button>
               </div>
             </CardContent>
           </Card>
@@ -210,9 +227,9 @@ const Settings = () => {
         <TabsContent value="transactions" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Transactions</CardTitle>
+              <CardTitle>{t('settings.recentTransactions')}</CardTitle>
               <CardDescription>
-                View your recent payment history and transaction details
+                {t('settings.transactionDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -236,7 +253,7 @@ const Settings = () => {
               </div>
               <Separator className="my-4" />
               <Button variant="outline" className="w-full">
-                View All Transactions
+                {t('settings.viewAllTransactions')}
               </Button>
             </CardContent>
           </Card>
@@ -245,19 +262,19 @@ const Settings = () => {
         <TabsContent value="account" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Account Actions</CardTitle>
+              <CardTitle>{t('settings.accountActions')}</CardTitle>
               <CardDescription>
-                Manage your account settings and access
+                {t('settings.accountDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-4">
                 <div className="border rounded-lg p-4">
-                  <h3 className="font-medium mb-2">Account Information</h3>
+                  <h3 className="font-medium mb-2">{t('settings.accountInfo')}</h3>
                   <div className="space-y-1 text-sm text-gray-600">
-                    <p><strong>Role:</strong> {user?.role === 'admin' ? 'Administrator' : 'Customer'}</p>
-                    <p><strong>Email:</strong> {user?.email}</p>
-                    <p><strong>Member Since:</strong> {new Date(user?.createdAt || '').toLocaleDateString()}</p>
+                    <p><strong>{t('settings.role')}:</strong> {user?.role === 'admin' ? t('settings.administrator') : t('settings.customer')}</p>
+                    <p><strong>{t('settings.email')}:</strong> {user?.email}</p>
+                    <p><strong>{t('settings.memberSince')}:</strong> {new Date(user?.createdAt || '').toLocaleDateString()}</p>
                   </div>
                 </div>
                 
@@ -265,10 +282,10 @@ const Settings = () => {
                 
                 <div className="space-y-3">
                   <Button variant="outline" className="w-full justify-start">
-                    Change Password
+                    {t('settings.changePassword')}
                   </Button>
                   <Button variant="outline" className="w-full justify-start">
-                    Download Data
+                    {t('settings.downloadData')}
                   </Button>
                   <Button 
                     variant="destructive" 
@@ -276,7 +293,7 @@ const Settings = () => {
                     onClick={handleSignOut}
                   >
                     <LogOut className="h-4 w-4" />
-                    Sign Out
+                    {t('settings.signOut')}
                   </Button>
                 </div>
               </div>
