@@ -258,27 +258,16 @@ export const useZebraScanner = () => {
     }
   }, [items, updateItem, lastScanTime]);
 
-  // Enhanced keyboard event handling for better barcode scanning - only target specific elements
+  // Enhanced keyboard event handling for better barcode scanning
   useEffect(() => {
     if (!isScannerActive || !isConnected) return;
 
     const handleKeyPress = (event: KeyboardEvent) => {
-      // Only handle barcode scanning when NOT in form inputs
-      const target = event.target as HTMLElement;
-      const isFormInput = target instanceof HTMLInputElement || 
-                         target instanceof HTMLTextAreaElement ||
-                         target instanceof HTMLSelectElement;
-      
-      // Skip if user is typing in form fields or if a dialog is open
-      if (isFormInput) {
-        // Check if this is specifically a barcode input field
-        const isDebugBarcodeField = target.id === 'barcode' || 
-                                   target.placeholder?.toLowerCase().includes('barcode') ||
-                                   target.placeholder?.toLowerCase().includes('scan');
-        
-        if (!isDebugBarcodeField) {
-          return; // Don't interfere with other form inputs
-        }
+      // Prevent handling if user is typing in an input field
+      if (event.target instanceof HTMLInputElement || 
+          event.target instanceof HTMLTextAreaElement ||
+          event.target instanceof HTMLSelectElement) {
+        return;
       }
 
       // Handle Enter key - process the accumulated barcode
@@ -292,12 +281,12 @@ export const useZebraScanner = () => {
         return;
       }
 
-      // Handle printable characters (build barcode string) - only when not in form inputs
-      if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey && !isFormInput) {
+      // Handle printable characters (build barcode string)
+      if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
         event.preventDefault();
         setScanBuffer(prev => prev + event.key);
         
-        // Auto-clear buffer after 500ms of inactivity
+        // Auto-clear buffer after 500ms of inactivity (faster than before)
         setTimeout(() => {
           setScanBuffer(current => {
             if (current.includes(event.key)) {
