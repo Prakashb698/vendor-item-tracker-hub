@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useInventoryStore } from "@/store/inventoryStore";
 import AddItemDialog from "@/components/AddItemDialog";
@@ -48,7 +47,7 @@ const Inventory = () => {
     return matchesSearch && matchesCategory;
   });
 
-  // Handler specifically for adding new items - only sets barcode
+  // Handler specifically for adding new items - only sets barcode and opens dialog
   const handleBarcodeForAddItem = (barcode: string) => {
     console.log("Barcode scanned for new item:", barcode);
     setScannedBarcodeForAdd(barcode);
@@ -59,9 +58,11 @@ const Inventory = () => {
 
   // Determine which scan handler to use based on current mode
   const getCurrentScanHandler = () => {
+    // If add dialog is open, route scans to the add item handler
     if (isAddDialogOpen) {
       return handleBarcodeForAddItem;
     }
+    // Otherwise use the default inventory scanner handler
     return handleBarcodeScan;
   };
 
