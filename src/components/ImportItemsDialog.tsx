@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -109,7 +108,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
       sku: ['sku', 'code', 'productcode', 'itemcode'],
       location: ['location', 'loc', 'warehouse', 'shelf'],
       vendor: ['vendor', 'supplier', 'manufacturer'],
-      barcode: ['barcode', 'barcodenumber', 'upc', 'ean']
+      barcode: ['barcode', 'barcodenumber', 'upc', 'ean', 'scanner', 'scannercode']
     };
 
     const mappedItem: any = {};
@@ -133,6 +132,29 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
       throw new Error("Item name is required");
     }
 
+    // Enhanced barcode field handling with conditions
+    let barcodeValue = '';
+    if (mappedItem.barcode) {
+      // Clean and validate barcode
+      barcodeValue = mappedItem.barcode.toString().trim();
+      
+      // Conditional checks for barcode validity
+      if (barcodeValue.length > 0) {
+        // Check if barcode contains only valid characters (numbers, letters, hyphens)
+        const validBarcodePattern = /^[A-Za-z0-9\-_]+$/;
+        if (!validBarcodePattern.test(barcodeValue)) {
+          console.warn(`Invalid barcode format for item ${mappedItem.name}: ${barcodeValue}`);
+          barcodeValue = ''; // Clear invalid barcode
+        }
+        
+        // Check barcode length (typical barcodes are 8-14 characters)
+        if (barcodeValue.length < 3 || barcodeValue.length > 50) {
+          console.warn(`Barcode length out of range for item ${mappedItem.name}: ${barcodeValue}`);
+          barcodeValue = ''; // Clear invalid length barcode
+        }
+      }
+    }
+
     // Set defaults for missing fields
     return {
       name: mappedItem.name.trim(),
@@ -144,7 +166,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
       sku: mappedItem.sku || `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       location: mappedItem.location || 'Not specified',
       vendor: mappedItem.vendor || 'Not specified',
-      barcode: mappedItem.barcode || '',
+      barcode: barcodeValue, // Use the conditionally validated barcode
     };
   };
 
@@ -298,6 +320,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
               <div className="text-sm text-blue-800">
                 <p className="font-medium mb-1">Supported formats: CSV files</p>
                 <p>Your CSV should include columns: name, description, category, quantity, price, lowStockThreshold, sku, location, vendor, barcode</p>
+                <p className="mt-2 text-xs">Note: Barcode field accepts various names (barcode, scanner, upc, ean) and validates format automatically</p>
               </div>
             </div>
           </div>
@@ -350,6 +373,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
                 {previewItems.slice(0, 5).map((item, index) => (
                   <div key={index} className="text-sm mb-2 p-2 bg-white rounded border">
                     <strong>{item.name}</strong> - {item.category} - ${item.price} - Qty: {item.quantity}
+                    {item.barcode && <span className="text-blue-600"> - Barcode: {item.barcode}</span>}
                   </div>
                 ))}
                 {previewItems.length > 5 && (
