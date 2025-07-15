@@ -1,5 +1,5 @@
 
-import { LayoutDashboard, Package, FolderOpen, Settings, FileText, DollarSign, Users, Shield } from "lucide-react";
+import { LayoutDashboard, Package, FolderOpen, Settings, FileText, DollarSign, Users, Shield, Bell } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -29,6 +29,7 @@ export function AppSidebar() {
     { title: t('navigation.categories'), url: "/categories", icon: FolderOpen },
     { title: t('navigation.reports'), url: "/reports", icon: FileText },
     { title: t('navigation.pricing'), url: "/pricing", icon: DollarSign },
+    { title: t('common.notifications', 'Notifications'), url: "/notifications", icon: Bell },
     { title: t('navigation.settings'), url: "/settings", icon: Settings },
   ];
 
@@ -37,6 +38,7 @@ export function AppSidebar() {
     { title: t('navigation.myInventory'), url: "/inventory", icon: Package },
     { title: t('navigation.reports'), url: "/reports", icon: FileText },
     { title: t('navigation.pricing'), url: "/pricing", icon: DollarSign },
+    { title: t('common.notifications', 'Notifications'), url: "/notifications", icon: Bell },
     { title: t('navigation.settings'), url: "/settings", icon: Settings },
   ];
 
