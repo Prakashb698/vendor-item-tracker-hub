@@ -273,8 +273,8 @@ export const useZebraScanner = () => {
       if (isFormInput) {
         // Check if this is specifically a barcode input field
         const isDebugBarcodeField = target.id === 'barcode' || 
-                                   target.placeholder?.toLowerCase().includes('barcode') ||
-                                   target.placeholder?.toLowerCase().includes('scan');
+                                   (target instanceof HTMLInputElement && target.placeholder?.toLowerCase().includes('barcode')) ||
+                                   (target instanceof HTMLInputElement && target.placeholder?.toLowerCase().includes('scan'));
         
         if (!isDebugBarcodeField) {
           return; // Don't interfere with other form inputs
