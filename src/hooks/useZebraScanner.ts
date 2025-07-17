@@ -41,7 +41,7 @@ export const useZebraScanner = () => {
   const [lastScanTime, setLastScanTime] = useState<number>(0);
   const [connectedDevice, setConnectedDevice] = useState<BluetoothDevice | null>(null);
   const [scanBuffer, setScanBuffer] = useState<string>("");
-  const { items, updateItem } = useInventoryStore();
+  const { items } = useInventoryStore();
 
   // Check if Web Bluetooth is supported
   const isWebBluetoothSupported = useCallback(() => {
@@ -218,7 +218,7 @@ export const useZebraScanner = () => {
     }
   }, [isWebBluetoothSupported]);
 
-  const handleBarcodeScan = useCallback((barcode: string) => {
+  const handleBarcodeScan = useCallback((barcode: string, onScanResult?: (item: any | null, scannedBarcode: string) => void) => {
     const now = Date.now();
     // Prevent duplicate scans within 1 second
     if (now - lastScanTime < 1000) {
@@ -254,20 +254,21 @@ export const useZebraScanner = () => {
       return false;
     });
 
+    // If onScanResult callback is provided, use it instead of the default behavior
+    if (onScanResult) {
+      onScanResult(foundItem || null, cleanBarcode);
+      return;
+    }
+
+    // Default behavior (legacy - for backward compatibility)
     if (foundItem) {
-      // Item found - increment quantity
-      updateItem(foundItem.id, {
-        quantity: foundItem.quantity + 1
-      });
-      
       toast({
-        title: "Item Scanned Successfully",
-        description: `${foundItem.name} - Quantity updated to ${foundItem.quantity + 1}`,
+        title: "Item Found",
+        description: `${foundItem.name} - Found in inventory`,
       });
       
-      console.log(`Item found and updated: ${foundItem.name}, new quantity: ${foundItem.quantity + 1}`);
+      console.log(`Item found: ${foundItem.name}`);
     } else {
-      // Item not found
       toast({
         title: "Item Not Found",
         description: `No item found with barcode: ${cleanBarcode}`,
@@ -276,7 +277,7 @@ export const useZebraScanner = () => {
       
       console.log(`No item found for barcode: ${cleanBarcode}`);
     }
-  }, [items, updateItem, lastScanTime]);
+  }, [items, lastScanTime]);
 
   // Enhanced keyboard event handling for better barcode scanning
   useEffect(() => {

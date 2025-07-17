@@ -3,6 +3,7 @@ import { useInventoryStore } from "@/store/inventoryStore";
 import AddItemDialog from "@/components/AddItemDialog";
 import ImportItemsDialog from "@/components/ImportItemsDialog";
 import BarcodeScanner from "@/components/BarcodeScanner";
+import ScanResultDialog from "@/components/ScanResultDialog";
 import InventoryHeader from "@/components/inventory/InventoryHeader";
 import MultiSelectActions from "@/components/inventory/MultiSelectActions";
 import InventoryFilters from "@/components/inventory/InventoryFilters";
@@ -10,10 +11,11 @@ import InventoryGrid from "@/components/inventory/InventoryGrid";
 import { useZebraScanner } from "@/hooks/useZebraScanner";
 import { useTranslation } from "react-i18next";
 import { useTranslatedInventory } from "@/hooks/useTranslatedInventory";
+import { InventoryItem } from "@/store/inventoryStore";
 
 const Inventory = () => {
   const { t } = useTranslation();
-  const { items, categories, deleteItem } = useInventoryStore();
+  const { items, categories } = useInventoryStore();
   const { translateItems, translateCategories } = useTranslatedInventory();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -23,6 +25,11 @@ const Inventory = () => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [scannedBarcodeForAdd, setScannedBarcodeForAdd] = useState<string>("");
+  
+  // Scan result dialog state
+  const [scanResultDialogOpen, setScanResultDialogOpen] = useState(false);
+  const [scannedItem, setScannedItem] = useState<InventoryItem | null>(null);
+  const [lastScannedBarcode, setLastScannedBarcode] = useState<string>("");
   
   const { 
     isScannerActive, 
@@ -56,14 +63,24 @@ const Inventory = () => {
     }
   };
 
+  // Handler for scan results - shows popup with item details or not found message
+  const handleScanResult = (item: InventoryItem | null, scannedBarcode: string) => {
+    console.log("Scan result:", item ? `Found: ${item.name}` : `Not found: ${scannedBarcode}`);
+    setScannedItem(item);
+    setLastScannedBarcode(scannedBarcode);
+    setScanResultDialogOpen(true);
+  };
+
   // Determine which scan handler to use based on current mode
   const getCurrentScanHandler = () => {
     // If add dialog is open, route scans to the add item handler
     if (isAddDialogOpen) {
       return handleBarcodeForAddItem;
     }
-    // Otherwise use the default inventory scanner handler
-    return handleBarcodeScan;
+    // Otherwise use the scan result handler to show popup
+    return (barcode: string) => {
+      handleBarcodeScan(barcode, handleScanResult);
+    };
   };
 
   const handleSelectItem = (itemId: string) => {
@@ -91,7 +108,12 @@ const Inventory = () => {
       .join(', ');
     
     if (window.confirm(`Are you sure you want to delete ${selectedItems.length} items: ${itemNames}?`)) {
-      selectedItems.forEach(itemId => deleteItem(itemId));
+      selectedItems.forEach(itemId => {
+        const itemToDelete = items.find(item => item.id === id);
+        if (itemToDelete) {
+          useInventoryStore.getState().deleteItem(itemId);
+        }
+      });
       setSelectedItems([]);
       setIsMultiSelectMode(false);
     }
@@ -163,7 +185,15 @@ const Inventory = () => {
         }}
         scannedBarcode={scannedBarcodeForAdd}
       />
+      
       <ImportItemsDialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen} />
+      
+      <ScanResultDialog
+        open={scanResultDialogOpen}
+        onOpenChange={setScanResultDialogOpen}
+        item={scannedItem}
+        scannedBarcode={lastScannedBarcode}
+      />
     </div>
   );
 };
