@@ -1,9 +1,9 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Scan, X, Check, Bluetooth, BluetoothConnected, Settings } from "lucide-react";
+import { Scan, X, Check, Bluetooth, BluetoothConnected, Settings, Keyboard } from "lucide-react";
 
 interface BarcodeScannerProps {
   onScan: (barcode: string) => void;
@@ -26,42 +26,28 @@ const BarcodeScanner = ({
 }: BarcodeScannerProps) => {
   const [lastScanned, setLastScanned] = useState<string>("");
   const [scanCount, setScanCount] = useState(0);
-  const scannerRef = useRef<HTMLDivElement>(null);
+  const [manualBarcode, setManualBarcode] = useState<string>("");
 
+  // Reset manual barcode when scanner becomes active
   useEffect(() => {
-    if (!isActive || !isConnected) return;
+    if (isActive) {
+      setManualBarcode("");
+    }
+  }, [isActive]);
 
-    const handleKeyPress = (event: KeyboardEvent) => {
-      // Prevent handling if user is typing in an input field
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
+  const handleManualScan = () => {
+    if (manualBarcode.trim()) {
+      onScan(manualBarcode.trim());
+      setScanCount(prev => prev + 1);
+      setManualBarcode("");
+    }
+  };
 
-      // Zebra scanners typically send data followed by Enter
-      if (event.key === 'Enter' && lastScanned.length > 0) {
-        event.preventDefault();
-        onScan(lastScanned);
-        setScanCount(prev => prev + 1);
-        setLastScanned("");
-      } else if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
-        // Build up the barcode string
-        event.preventDefault();
-        setLastScanned(prev => prev + event.key);
-      }
-    };
-
-    // Clear any partial scans after 2 seconds of inactivity
-    const clearTimer = setTimeout(() => {
-      setLastScanned("");
-    }, 2000);
-
-    document.addEventListener('keypress', handleKeyPress);
-    
-    return () => {
-      document.removeEventListener('keypress', handleKeyPress);
-      clearTimeout(clearTimer);
-    };
-  }, [isActive, isConnected, lastScanned, onScan]);
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleManualScan();
+    }
+  };
 
   const getConnectionIcon = () => {
     switch (connectionStatus) {
@@ -147,7 +133,7 @@ const BarcodeScanner = ({
               <p className="text-gray-700 font-medium">Scanner Not Connected</p>
               <p className="text-sm text-gray-600">Click "Connect" to pair your Zebra scanner</p>
             </div>
-            <div className="text-xs text-gray-500 space-y-1 bg-blue-50 p-3 rounded-lg">
+            <div className="text-xs text-gray-500 space-y-1 bg-blue-50 p-3 rounded-lg mb-4">
               <p className="font-medium text-blue-700">Pairing Instructions:</p>
               <p>• Power on your Zebra scanner</p>
               <p>• Make sure it's in pairing mode (check scanner manual)</p>
@@ -155,6 +141,32 @@ const BarcodeScanner = ({
               <div className="mt-2 flex items-center justify-center gap-1 text-blue-600">
                 <Settings className="h-3 w-3" />
                 <span className="text-xs">Scanner should be set to keyboard wedge mode</span>
+              </div>
+            </div>
+            
+            {/* Manual barcode input for testing */}
+            <div className="border-t pt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Keyboard className="h-4 w-4 text-gray-500" />
+                <span className="text-sm text-gray-600">Manual Entry (for testing)</span>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={manualBarcode}
+                  onChange={(e) => setManualBarcode(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Enter barcode manually"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <Button
+                  onClick={handleManualScan}
+                  size="sm"
+                  disabled={!manualBarcode.trim()}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Scan
+                </Button>
               </div>
             </div>
           </div>
@@ -170,6 +182,32 @@ const BarcodeScanner = ({
                 Reading: {lastScanned}
               </div>
             )}
+            
+            {/* Manual input available during active scanning too */}
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Keyboard className="h-4 w-4 text-gray-500" />
+                <span className="text-sm text-gray-600">Manual Entry</span>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={manualBarcode}
+                  onChange={(e) => setManualBarcode(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Enter barcode manually"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <Button
+                  onClick={handleManualScan}
+                  size="sm"
+                  disabled={!manualBarcode.trim()}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Scan
+                </Button>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="text-center py-4">
@@ -177,6 +215,32 @@ const BarcodeScanner = ({
             <p className="text-xs text-gray-500 mt-1">
               Click "Start" to begin scanning
             </p>
+            
+            {/* Manual input available when inactive too */}
+            <div className="border-t pt-4 mt-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Keyboard className="h-4 w-4 text-gray-500" />
+                <span className="text-sm text-gray-600">Manual Entry</span>
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={manualBarcode}
+                  onChange={(e) => setManualBarcode(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Enter barcode manually"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <Button
+                  onClick={handleManualScan}
+                  size="sm"
+                  disabled={!manualBarcode.trim()}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Scan
+                </Button>
+              </div>
+            </div>
           </div>
         )}
         

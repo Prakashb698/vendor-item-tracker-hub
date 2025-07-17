@@ -5,8 +5,9 @@ import { toast } from "@/hooks/use-toast";
 
 interface BluetoothNavigator extends Navigator {
   bluetooth?: {
-    getDevices(): Promise<BluetoothDevice[]>;
+    getDevices?(): Promise<BluetoothDevice[]>;
     requestDevice(options: RequestDeviceOptions): Promise<BluetoothDevice>;
+    getAvailability?(): Promise<boolean>;
   };
 }
 
@@ -42,30 +43,41 @@ export const useZebraScanner = () => {
   const [scanBuffer, setScanBuffer] = useState<string>("");
   const { items, updateItem } = useInventoryStore();
 
+  // Check if Web Bluetooth is supported
+  const isWebBluetoothSupported = useCallback(() => {
+    const bluetoothNav = navigator as BluetoothNavigator;
+    return 'bluetooth' in navigator && bluetoothNav.bluetooth;
+  }, []);
+
   // Check for Zebra scanner connection
   const checkScannerConnection = useCallback(async () => {
     try {
       const bluetoothNav = navigator as BluetoothNavigator;
       
       // Check if Web Bluetooth is supported
-      if ('bluetooth' in navigator && bluetoothNav.bluetooth) {
+      if (isWebBluetoothSupported() && bluetoothNav.bluetooth) {
         try {
-          const devices = await bluetoothNav.bluetooth.getDevices();
-          const zebraDevice = devices.find(device => 
-            device.name?.toLowerCase().includes('zebra') || 
-            device.name?.toLowerCase().includes('scanner') ||
-            device.name?.toLowerCase().includes('symbol') ||
-            device.name?.toLowerCase().includes('motorola') ||
-            device.name?.toLowerCase().includes('tc') ||
-            device.name?.toLowerCase().includes('mc') ||
-            device.name?.toLowerCase().includes('ds')
-          );
-          
-          if (zebraDevice && zebraDevice.gatt?.connected) {
-            setIsConnected(true);
-            setConnectionStatus('connected');
-            setConnectedDevice(zebraDevice);
-            return true;
+          // Check if getDevices method exists before calling it
+          if (bluetoothNav.bluetooth.getDevices) {
+            const devices = await bluetoothNav.bluetooth.getDevices();
+            const zebraDevice = devices.find(device => 
+              device.name?.toLowerCase().includes('zebra') || 
+              device.name?.toLowerCase().includes('scanner') ||
+              device.name?.toLowerCase().includes('symbol') ||
+              device.name?.toLowerCase().includes('motorola') ||
+              device.name?.toLowerCase().includes('tc') ||
+              device.name?.toLowerCase().includes('mc') ||
+              device.name?.toLowerCase().includes('ds')
+            );
+            
+            if (zebraDevice && zebraDevice.gatt?.connected) {
+              setIsConnected(true);
+              setConnectionStatus('connected');
+              setConnectedDevice(zebraDevice);
+              return true;
+            }
+          } else {
+            console.log('getDevices method not available, using keyboard wedge mode');
           }
         } catch (bluetoothError) {
           console.log('Bluetooth device check failed:', bluetoothError);
@@ -82,7 +94,7 @@ export const useZebraScanner = () => {
       setConnectionStatus('disconnected');
       return false;
     }
-  }, []);
+  }, [isWebBluetoothSupported]);
 
   const connectScanner = useCallback(async () => {
     setConnectionStatus('connecting');
@@ -90,10 +102,18 @@ export const useZebraScanner = () => {
     try {
       const bluetoothNav = navigator as BluetoothNavigator;
       
-      // Try to connect via Web Bluetooth first
-      if ('bluetooth' in navigator && bluetoothNav.bluetooth) {
+      // Try to connect via Web Bluetooth first if supported
+      if (isWebBluetoothSupported() && bluetoothNav.bluetooth) {
         try {
           console.log('Attempting Bluetooth connection...');
+          
+          // First check if Bluetooth is available
+          if (bluetoothNav.bluetooth.getAvailability) {
+            const isAvailable = await bluetoothNav.bluetooth.getAvailability();
+            if (!isAvailable) {
+              throw new Error('Bluetooth not available');
+            }
+          }
           
           // Use specific filters for scanner devices
           const device = await bluetoothNav.bluetooth.requestDevice({
@@ -123,7 +143,7 @@ export const useZebraScanner = () => {
           console.log('Found device:', device.name, device.id);
           
           if (device.gatt) {
-            const server = await device.gatt.connect();
+            await device.gatt.connect();
             setIsConnected(true);
             setConnectionStatus('connected');
             setConnectedDevice(device);
@@ -183,7 +203,7 @@ export const useZebraScanner = () => {
       setConnectionStatus('connected');
       toast({
         title: "Scanner Ready (Keyboard Mode)",
-        description: "Scanner ready in keyboard wedge mode. Make sure your Zebra scanner is paired via Bluetooth settings and set to keyboard wedge mode.",
+        description: "Scanner ready in keyboard wedge mode. Make sure your Zebra scanner is paired via system Bluetooth settings and set to keyboard wedge mode.",
       });
       
     } catch (error) {
@@ -196,7 +216,7 @@ export const useZebraScanner = () => {
         variant: "destructive",
       });
     }
-  }, []);
+  }, [isWebBluetoothSupported]);
 
   const handleBarcodeScan = useCallback((barcode: string) => {
     const now = Date.now();
@@ -258,9 +278,11 @@ export const useZebraScanner = () => {
     }
   }, [items, updateItem, lastScanTime]);
 
-  // Enhanced keyboard event handling for better barcode scanning - only target specific elements
+  // Enhanced keyboard event handling for better barcode scanning
   useEffect(() => {
     if (!isScannerActive || !isConnected) return;
+
+    let bufferTimer: NodeJS.Timeout;
 
     const handleKeyPress = (event: KeyboardEvent) => {
       // Only handle barcode scanning when NOT in form inputs
@@ -269,14 +291,15 @@ export const useZebraScanner = () => {
                          target instanceof HTMLTextAreaElement ||
                          target instanceof HTMLSelectElement;
       
-      // Skip if user is typing in form fields or if a dialog is open
+      // Skip if user is typing in form fields
       if (isFormInput) {
         // Check if this is specifically a barcode input field
-        const isDebugBarcodeField = target.id === 'barcode' || 
-                                   (target instanceof HTMLInputElement && target.placeholder?.toLowerCase().includes('barcode')) ||
-                                   (target instanceof HTMLInputElement && target.placeholder?.toLowerCase().includes('scan'));
+        const isBarcodeField = target.id === 'barcode' || 
+                              (target instanceof HTMLInputElement && 
+                               (target.placeholder?.toLowerCase().includes('barcode') ||
+                                target.placeholder?.toLowerCase().includes('scan')));
         
-        if (!isDebugBarcodeField) {
+        if (!isBarcodeField) {
           return; // Don't interfere with other form inputs
         }
       }
@@ -287,7 +310,8 @@ export const useZebraScanner = () => {
         if (scanBuffer.length > 0) {
           console.log('Processing scanned barcode from buffer:', scanBuffer);
           handleBarcodeScan(scanBuffer);
-          setScanBuffer(""); // Clear buffer after processing
+          setScanBuffer("");
+          if (bufferTimer) clearTimeout(bufferTimer);
         }
         return;
       }
@@ -297,15 +321,11 @@ export const useZebraScanner = () => {
         event.preventDefault();
         setScanBuffer(prev => prev + event.key);
         
-        // Auto-clear buffer after 500ms of inactivity
-        setTimeout(() => {
-          setScanBuffer(current => {
-            if (current.includes(event.key)) {
-              return ""; // Clear if this character is still in buffer
-            }
-            return current;
-          });
-        }, 500);
+        // Clear buffer timer and set new one
+        if (bufferTimer) clearTimeout(bufferTimer);
+        bufferTimer = setTimeout(() => {
+          setScanBuffer("");
+        }, 1000); // Clear buffer after 1 second of inactivity
       }
     };
 
@@ -313,6 +333,7 @@ export const useZebraScanner = () => {
     
     return () => {
       document.removeEventListener('keypress', handleKeyPress);
+      if (bufferTimer) clearTimeout(bufferTimer);
     };
   }, [isScannerActive, isConnected, scanBuffer, handleBarcodeScan]);
 
@@ -322,10 +343,10 @@ export const useZebraScanner = () => {
         await connectScanner();
       }
       setIsScannerActive(true);
-      setScanBuffer(""); // Clear buffer when starting
+      setScanBuffer("");
     } else {
       setIsScannerActive(false);
-      setScanBuffer(""); // Clear buffer when stopping
+      setScanBuffer("");
     }
   }, [isScannerActive, isConnected, connectScanner]);
 
@@ -337,7 +358,7 @@ export const useZebraScanner = () => {
     setIsConnected(false);
     setConnectionStatus('disconnected');
     setConnectedDevice(null);
-    setScanBuffer(""); // Clear buffer on disconnect
+    setScanBuffer("");
     toast({
       title: "Scanner Disconnected",
       description: "Scanner has been disconnected",
