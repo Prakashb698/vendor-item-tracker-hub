@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -80,15 +79,15 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
             </div>
             
             {!isMultiSelectMode && (
-              <>
-                {user?.role === 'admin' ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-white">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-white">
+                  {user?.role === 'admin' ? (
+                    <>
                       <DropdownMenuItem 
                         onClick={() => setIsEditDialogOpen(true)}
                         className="cursor-pointer"
@@ -103,20 +102,19 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
                         <Trash2 className="h-4 w-4 mr-2" />
                         {t('common.delete')}
                       </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddToQueue}
-                    disabled={item.quantity === 0}
-                    className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                  >
-                    <ShoppingCartIcon className="h-4 w-4" />
-                  </Button>
-                )}
-              </>
+                    </>
+                  ) : (
+                    <DropdownMenuItem 
+                      onClick={handleAddToQueue}
+                      disabled={item.quantity === 0}
+                      className="cursor-pointer"
+                    >
+                      <ShoppingCartIcon className="h-4 w-4 mr-2" />
+                      {item.quantity === 0 ? t('inventory.outOfStock') : t('inventory.addToQueue')}
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
         </CardHeader>
