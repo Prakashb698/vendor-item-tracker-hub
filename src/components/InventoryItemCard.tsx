@@ -86,33 +86,20 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="bg-white">
-                  {user?.role === 'admin' ? (
-                    <>
-                      <DropdownMenuItem 
-                        onClick={() => setIsEditDialogOpen(true)}
-                        className="cursor-pointer"
-                      >
-                        <Edit className="h-4 w-4 mr-2" />
-                        {t('common.edit')}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={() => setIsDeleteDialogOpen(true)}
-                        className="cursor-pointer text-red-600 focus:text-red-600"
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        {t('common.delete')}
-                      </DropdownMenuItem>
-                    </>
-                  ) : (
-                    <DropdownMenuItem 
-                      onClick={handleAddToQueue}
-                      disabled={item.quantity === 0}
-                      className="cursor-pointer"
-                    >
-                      <ShoppingCartIcon className="h-4 w-4 mr-2" />
-                      {item.quantity === 0 ? t('inventory.outOfStock') : t('inventory.addToQueue')}
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem 
+                    onClick={() => setIsEditDialogOpen(true)}
+                    className="cursor-pointer"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    {t('common.edit')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    className="cursor-pointer text-red-600 focus:text-red-600"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    {t('common.delete')}
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
@@ -181,21 +168,17 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
         </CardContent>
       </Card>
 
-      {user?.role === 'admin' && (
-        <>
-          <EditItemDialog 
-            item={item}
-            open={isEditDialogOpen} 
-            onOpenChange={setIsEditDialogOpen} 
-          />
-          <DeleteConfirmDialog
-            open={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}
-            itemName={item.name}
-            onConfirm={handleDelete}
-          />
-        </>
-      )}
+      <EditItemDialog 
+        item={item}
+        open={isEditDialogOpen} 
+        onOpenChange={setIsEditDialogOpen} 
+      />
+      <DeleteConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        itemName={item.name}
+        onConfirm={handleDelete}
+      />
     </>
   );
 };
