@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, Settings as SettingsIcon, CreditCard, History, Globe, LogOut, Save } from "lucide-react";
+import { User, Settings as SettingsIcon, CreditCard, History, Globe, LogOut, Save, Bell } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
@@ -74,7 +74,7 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             {t('settings.profile')}
@@ -82,6 +82,10 @@ const Settings = () => {
           <TabsTrigger value="preferences" className="flex items-center gap-2">
             <SettingsIcon className="h-4 w-4" />
             {t('settings.preferences')}
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell className="h-4 w-4" />
+            Notifications
           </TabsTrigger>
           <TabsTrigger value="payments" className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
@@ -193,6 +197,39 @@ const Settings = () => {
                   <Globe className="h-4 w-4" />
                   {t('settings.savePreferences')}
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="notifications" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Notification Settings
+              </CardTitle>
+              <CardDescription>
+                Manage your notification preferences and settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Configure how and when you receive notifications about your inventory, orders, and account activity.
+              </p>
+              <div className="flex gap-4">
+                <Link to="/notification-settings">
+                  <Button className="flex items-center gap-2">
+                    <Bell className="h-4 w-4" />
+                    Manage Notifications
+                  </Button>
+                </Link>
+                <Link to="/notifications">
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <History className="h-4 w-4" />
+                    View Notifications
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
