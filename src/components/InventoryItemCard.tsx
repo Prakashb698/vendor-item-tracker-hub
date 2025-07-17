@@ -10,6 +10,7 @@ import { usePurchaseQueueStore } from "@/store/purchaseQueueStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import EditItemDialog from "./EditItemDialog";
+import DeleteConfirmDialog from "./DeleteConfirmDialog";
 import { useTranslation } from "react-i18next";
 
 interface InventoryItemCardProps {
@@ -25,6 +26,7 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
   const { deleteItem } = useInventoryStore();
   const { addItem } = usePurchaseQueueStore();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   const isLowStock = item.quantity <= item.lowStockThreshold;
   const stockStatus = isLowStock ? 'low' : item.quantity <= item.lowStockThreshold * 2 ? 'medium' : 'high';
@@ -38,9 +40,7 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
-      deleteItem(item.id);
-    }
+    deleteItem(item.id);
   };
 
   const handleAddToQueue = () => {
@@ -97,7 +97,7 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
                         {t('common.edit')}
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        onClick={handleDelete}
+                        onClick={() => setIsDeleteDialogOpen(true)}
                         className="cursor-pointer text-red-600 focus:text-red-600"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
@@ -184,11 +184,19 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
       </Card>
 
       {user?.role === 'admin' && (
-        <EditItemDialog 
-          item={item}
-          open={isEditDialogOpen} 
-          onOpenChange={setIsEditDialogOpen} 
-        />
+        <>
+          <EditItemDialog 
+            item={item}
+            open={isEditDialogOpen} 
+            onOpenChange={setIsEditDialogOpen} 
+          />
+          <DeleteConfirmDialog
+            open={isDeleteDialogOpen}
+            onOpenChange={setIsDeleteDialogOpen}
+            itemName={item.name}
+            onConfirm={handleDelete}
+          />
+        </>
       )}
     </>
   );

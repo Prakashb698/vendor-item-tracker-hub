@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useInventoryStore } from "@/store/inventoryStore";
 import AddItemDialog from "@/components/AddItemDialog";
@@ -103,13 +104,13 @@ const Inventory = () => {
     if (selectedItems.length === 0) return;
     
     const itemNames = selectedItems
-      .map(id => items.find(item => item.id === id)?.name)
+      .map(itemId => items.find(item => item.id === itemId)?.name)
       .filter(Boolean)
       .join(', ');
     
     if (window.confirm(`Are you sure you want to delete ${selectedItems.length} items: ${itemNames}?`)) {
       selectedItems.forEach(itemId => {
-        const itemToDelete = items.find(item => item.id === id);
+        const itemToDelete = items.find(item => item.id === itemId);
         if (itemToDelete) {
           useInventoryStore.getState().deleteItem(itemId);
         }
