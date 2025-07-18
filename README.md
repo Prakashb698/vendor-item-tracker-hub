@@ -3,7 +3,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/42969772-ca8c-4390-86dc-f1e9de92d6df
+**URL**: https://swiffpass.tech/projects/vendor-item-tracker-hub
 
 ## About SwiffPass Technology
 
@@ -13,15 +13,15 @@ SwiffPass Technology provides advanced inventory management solutions for busine
 
 There are several ways of editing your application.
 
-**Use Lovable**
+**Use SwiffPass Technology Platform**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/42969772-ca8c-4390-86dc-f1e9de92d6df) and start prompting.
+Simply visit the [SwiffPass Technology Project](https://swiffpass.tech/projects/vendor-item-tracker-hub) and start managing your inventory.
 
-Changes made via Lovable will be committed automatically to this repo.
+Changes made via SwiffPass Technology will be automatically synchronized.
 
 **Use your preferred IDE**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in SwiffPass Technology.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -67,7 +67,7 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/42969772-ca8c-4390-86dc-f1e9de92d6df) and click on Share -> Publish.
+Simply open [SwiffPass Technology](https://swiffpass.tech/projects/vendor-item-tracker-hub) and click on Share -> Publish.
 
 ## Can I connect a custom domain to my SwiffPass Technology project?
 
@@ -75,7 +75,7 @@ Yes, you can!
 
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+Read more here: [Setting up a custom domain](https://docs.swiffpass.tech/tips-tricks/custom-domain#step-by-step-guide)
 
 ---
 
