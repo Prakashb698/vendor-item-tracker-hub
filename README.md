@@ -1,9 +1,8 @@
-
 # SwiffPass Technology - Vendor Item Tracker Hub
 
 ## Project info
 
-**URL**: https://swiffpass.tech/projects/vendor-item-tracker-hub
+**URL**: https://swisspass.technologies/projects/42969772-ca8c-4390-86dc-f1e9de92d6df
 
 ## About SwiffPass Technology
 
@@ -15,7 +14,7 @@ There are several ways of editing your application.
 
 **Use SwiffPass Technology Platform**
 
-Simply visit the [SwiffPass Technology Project](https://swiffpass.tech/projects/vendor-item-tracker-hub) and start managing your inventory.
+Simply visit the [SwiffPass Technology Project](https://swisspass.technologies/projects/42969772-ca8c-4390-86dc-f1e9de92d6df) and start managing your inventory.
 
 Changes made via SwiffPass Technology will be automatically synchronized.
 
@@ -67,7 +66,7 @@ This project is built with:
 
 ## How can I deploy this project?
 
-Simply open [SwiffPass Technology](https://swiffpass.tech/projects/vendor-item-tracker-hub) and click on Share -> Publish.
+Simply open [SwiffPass Technology](https://swisspass.technologies/projects/42969772-ca8c-4390-86dc-f1e9de92d6df) and click on Share -> Publish.
 
 ## Can I connect a custom domain to my SwiffPass Technology project?
 
