@@ -1,8 +1,13 @@
-# Welcome to your Lovable project
+
+# SwiffPass Technology - Vendor Item Tracker Hub
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/42969772-ca8c-4390-86dc-f1e9de92d6df
+
+## About SwiffPass Technology
+
+SwiffPass Technology provides advanced inventory management solutions for businesses of all sizes. Our platform offers real-time tracking, analytics, and seamless integration capabilities.
 
 ## How can I edit this code?
 
@@ -64,10 +69,14 @@ This project is built with:
 
 Simply open [Lovable](https://lovable.dev/projects/42969772-ca8c-4390-86dc-f1e9de92d6df) and click on Share -> Publish.
 
-## Can I connect a custom domain to my Lovable project?
+## Can I connect a custom domain to my SwiffPass Technology project?
 
 Yes, you can!
 
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+---
+
+© 2024 SwiffPass Technology. All rights reserved.

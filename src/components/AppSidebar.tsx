@@ -59,7 +59,7 @@ export function AppSidebar() {
             </div>
             {!isCollapsed && (
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Dynamic Tracking</h2>
+                <h2 className="text-lg font-semibold text-gray-900">SwiffPass Technology</h2>
                 <p className="text-xs text-gray-500">
                   {user?.role === 'admin' ? t('common.adminPanel') : t('common.customerPortal')}
                 </p>
