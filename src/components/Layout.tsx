@@ -5,7 +5,6 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { AppSidebar } from "./AppSidebar";
 import { useAuth } from "@/contexts/AuthContext";
-import { ThemeToggle } from "./ThemeToggle";
 import PurchaseQueue from "./PurchaseQueue";
 import { MLChatBot } from "./MLChatBot";
 import { useTranslation } from "react-i18next";
@@ -23,15 +22,14 @@ const Layout = ({ children }: LayoutProps) => {
     <>
       <AppSidebar />
       <div className="flex-1 flex flex-col">
-        <header className="h-16 flex items-center justify-between border-b bg-background px-6 shadow-sm">
+        <header className="h-16 flex items-center justify-between border-b bg-white px-6 shadow-sm">
           <div className="flex items-center gap-4">
-            <SidebarTrigger />
-            <h1 className="text-xl font-semibold">
+            <SidebarTrigger className="text-gray-600 hover:text-gray-900" />
+            <h1 className="text-xl font-semibold text-gray-900">
               {user?.role === 'admin' ? t('common.adminPanel') : t('common.customerPortal')}
             </h1>
           </div>
           <div className="flex items-center gap-4">
-            <ThemeToggle />
             {user?.role === 'customer' && <PurchaseQueue />}
             <Link to="/notifications">
               <Button
@@ -44,8 +42,8 @@ const Layout = ({ children }: LayoutProps) => {
               </Button>
             </Link>
             <div className="text-right">
-              <p className="text-sm font-medium">{user?.name}</p>
-              <p className="text-xs text-muted-foreground">{user?.businessName}</p>
+              <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+              <p className="text-xs text-gray-500">{user?.businessName}</p>
             </div>
             <Button
               variant="outline"
@@ -58,7 +56,7 @@ const Layout = ({ children }: LayoutProps) => {
             </Button>
           </div>
         </header>
-        <main className="flex-1 p-6 bg-background">
+        <main className="flex-1 p-6 bg-gray-50">
           {children}
         </main>
         {/* Show ML-powered chatbot only for customers */}

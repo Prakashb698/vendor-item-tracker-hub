@@ -97,18 +97,7 @@
     @apply border-border;
   }
 
-body {
-  @apply bg-background text-foreground;
-}
-
-@media print {
-  .no-print {
-    display: none !important;
-  }
-  
   body {
-    background: white !important;
-    color: black !important;
+    @apply bg-background text-foreground;
   }
-}
 }
