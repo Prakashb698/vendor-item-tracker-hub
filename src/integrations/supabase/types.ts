@@ -89,6 +89,45 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          item_id: string | null
+          message: string
+          read: boolean
+          title: string
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          message: string
+          read?: boolean
+          title: string
+          type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           amount: number | null
@@ -214,7 +253,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      mark_all_notifications_read: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      mark_notification_read: {
+        Args: { notification_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
