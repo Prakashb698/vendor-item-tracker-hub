@@ -1,61 +1,51 @@
 
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Check, Trash2, Settings } from "lucide-react";
+import { Separator } from '@/components/ui/separator';
+import { formatDistanceToNow } from 'date-fns';
+import { Bell, Check, CheckCheck, AlertTriangle, Info, AlertCircle, CheckCircle, Settings } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useNotifications, Notification } from '@/hooks/useNotifications';
+
+const getNotificationIcon = (type: Notification['type']) => {
+  switch (type) {
+    case 'warning':
+      return <AlertTriangle className="h-5 w-5 text-yellow-500" />;
+    case 'error':
+      return <AlertCircle className="h-5 w-5 text-red-500" />;
+    case 'success':
+      return <CheckCircle className="h-5 w-5 text-green-500" />;
+    default:
+      return <Info className="h-5 w-5 text-blue-500" />;
+  }
+};
+
+const getNotificationVariant = (type: Notification['type']) => {
+  switch (type) {
+    case 'warning':
+      return 'secondary';
+    case 'error':
+      return 'destructive';
+    case 'success':
+      return 'default';
+    default:
+      return 'outline';
+  }
+};
 
 const Notifications = () => {
   const { t } = useTranslation();
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Low Stock Alert",
-      message: "Widget A is running low on stock (5 remaining)",
-      type: "warning",
-      read: false,
-      timestamp: "2 hours ago"
-    },
-    {
-      id: 2,
-      title: "New Order Received",
-      message: "Order #12345 has been placed",
-      type: "info",
-      read: false,
-      timestamp: "4 hours ago"
-    },
-    {
-      id: 3,
-      title: "Inventory Updated",
-      message: "Product B has been restocked",
-      type: "success",
-      read: true,
-      timestamp: "1 day ago"
-    }
-  ]);
+  const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications();
 
-  const markAsRead = (id: number) => {
-    setNotifications(notifications.map(notif => 
-      notif.id === id ? { ...notif, read: true } : notif
-    ));
-  };
-
-  const deleteNotification = (id: number) => {
-    setNotifications(notifications.filter(notif => notif.id !== id));
-  };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'warning': return 'bg-yellow-100 text-yellow-800';
-      case 'info': return 'bg-blue-100 text-blue-800';
-      case 'success': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center">Loading notifications...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
@@ -74,12 +64,20 @@ const Notifications = () => {
             {t('notifications.subtitle', 'Stay updated with your latest alerts and messages')}
           </p>
         </div>
-        <Link to="/notification-settings">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Settings className="h-4 w-4" />
-            Manage Notifications
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          {unreadCount > 0 && (
+            <Button onClick={markAllAsRead} variant="outline">
+              <CheckCheck className="h-4 w-4 mr-2" />
+              Mark all as read ({unreadCount})
+            </Button>
+          )}
+          <Link to="/notification-settings">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" />
+              Manage Notifications
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -97,44 +95,39 @@ const Notifications = () => {
           </Card>
         ) : (
           notifications.map((notification) => (
-            <Card key={notification.id} className={`${!notification.read ? 'border-l-4 border-l-blue-500' : ''}`}>
+            <Card key={notification.id} className={`${!notification.read ? 'ring-2 ring-blue-200 dark:ring-blue-800' : ''}`}>
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CardTitle className="text-lg">{notification.title}</CardTitle>
-                      <Badge variant="outline" className={getTypeColor(notification.type)}>
-                        {notification.type}
-                      </Badge>
-                      {!notification.read && (
-                        <Badge variant="destructive" className="text-xs">
-                          {t('notifications.new', 'New')}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {getNotificationIcon(notification.type)}
+                    <div>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        {notification.title}
+                        {!notification.read && (
+                          <div className="h-2 w-2 bg-blue-500 rounded-full" />
+                        )}
+                      </CardTitle>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={getNotificationVariant(notification.type)} className="text-xs">
+                          {notification.category.replace('_', ' ')}
                         </Badge>
-                      )}
+                        <span className="text-sm text-gray-500">
+                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                        </span>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-500">{notification.timestamp}</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2">
                     {!notification.read && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => markAsRead(notification.id)}
-                        className="flex items-center gap-1"
                       >
-                        <Check className="h-3 w-3" />
-                        {t('notifications.markRead', 'Mark as read')}
+                        <Check className="h-4 w-4 mr-1" />
+                        Mark as read
                       </Button>
                     )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => deleteNotification(notification.id)}
-                      className="flex items-center gap-1 text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                      {t('notifications.delete', 'Delete')}
-                    </Button>
                   </div>
                 </div>
               </CardHeader>

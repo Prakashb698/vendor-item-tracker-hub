@@ -1,6 +1,6 @@
 
 
-import { LogOut, Bell } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { AppSidebar } from "./AppSidebar";
@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import PurchaseQueue from "./PurchaseQueue";
 import { MLChatBot } from "./MLChatBot";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { NotificationBell } from "./notifications/NotificationBell";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -31,16 +31,7 @@ const Layout = ({ children }: LayoutProps) => {
           </div>
           <div className="flex items-center gap-4">
             {user?.role === 'customer' && <PurchaseQueue />}
-            <Link to="/notifications">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <Bell className="h-4 w-4" />
-                {t('common.notifications', 'Notifications')}
-              </Button>
-            </Link>
+            <NotificationBell />
             <div className="text-right">
               <p className="text-sm font-medium text-gray-900">{user?.name}</p>
               <p className="text-xs text-gray-500">{user?.businessName}</p>
