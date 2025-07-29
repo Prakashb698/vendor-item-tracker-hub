@@ -1,7 +1,9 @@
 
-import { Users, Package, BarChart3, Settings, Shield, Activity } from 'lucide-react';
+import { Users, Package, BarChart3, Settings, Shield, Activity, TrendingUp, PieChart as LucidePieChart } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Cell, Pie } from "recharts";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
@@ -41,6 +43,28 @@ const AdminDashboard = () => {
     },
   ];
 
+  // Analytics data for charts
+  const analyticsData = [
+    { month: 'Jan', users: 950, revenue: 38000, businesses: 720 },
+    { month: 'Feb', users: 1050, revenue: 42000, businesses: 780 },
+    { month: 'Mar', users: 1150, revenue: 45000, businesses: 820 },
+    { month: 'Apr', users: 1200, revenue: 44000, businesses: 840 },
+    { month: 'May', users: 1220, revenue: 46000, businesses: 850 },
+    { month: 'Jun', users: 1234, revenue: 45678, businesses: 856 }
+  ];
+
+  const platformData = [
+    { name: 'Web App', value: 45, fill: 'hsl(220, 70%, 60%)' },
+    { name: 'Mobile', value: 30, fill: 'hsl(160, 70%, 60%)' },
+    { name: 'API', value: 25, fill: 'hsl(290, 70%, 60%)' }
+  ];
+
+  const chartConfig = {
+    users: { label: "Users", color: "hsl(var(--chart-1))" },
+    revenue: { label: "Revenue", color: "hsl(var(--chart-2))" },
+    businesses: { label: "Businesses", color: "hsl(var(--chart-3))" }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -72,6 +96,70 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Enhanced Analytics Dashboard */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Growth Trends */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Platform Growth Analytics
+            </CardTitle>
+            <CardDescription>
+              Track user growth, revenue, and business registrations
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={analyticsData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Line type="monotone" dataKey="users" stroke="hsl(var(--chart-1))" strokeWidth={2} />
+                  <Line type="monotone" dataKey="businesses" stroke="hsl(var(--chart-3))" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Platform Usage Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <LucidePieChart className="h-5 w-5" />
+              Platform Usage Distribution
+            </CardTitle>
+            <CardDescription>
+              How users access the platform
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Pie
+                    data={platformData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                    nameKey="name"
+                  >
+                    {platformData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Admin Tools */}
