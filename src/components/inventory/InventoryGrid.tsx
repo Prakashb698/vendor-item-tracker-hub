@@ -9,8 +9,6 @@ interface InventoryGridProps {
   filteredItems: InventoryItem[];
   isMultiSelectMode: boolean;
   selectedItems: string[];
-  searchTerm: string;
-  selectedCategory: string;
   onSelectItem: (itemId: string) => void;
   onOpenImportDialog: () => void;
   onOpenAddDialog: () => void;
@@ -20,8 +18,6 @@ const InventoryGrid = ({
   filteredItems,
   isMultiSelectMode,
   selectedItems,
-  searchTerm,
-  selectedCategory,
   onSelectItem,
   onOpenImportDialog,
   onOpenAddDialog,
@@ -36,30 +32,25 @@ const InventoryGrid = ({
         </div>
         <h3 className="text-lg font-medium text-gray-900 mb-2">{t('inventory.noItemsFound')}</h3>
         <p className="text-gray-600 mb-4">
-          {searchTerm || selectedCategory !== "all" 
-            ? t('inventory.noItemsDescription')
-            : t('inventory.getStartedDescription')
-          }
+          {t('inventory.noItemsDescription')}
         </p>
-        {!searchTerm && selectedCategory === "all" && (
-          <div className="flex justify-center gap-2">
-            <Button 
-              onClick={onOpenImportDialog}
-              variant="outline"
-              className="border-blue-200 text-blue-700 hover:bg-blue-50"
-            >
-              <Upload className="h-4 w-4 mr-2" />
-              {t('inventory.importFromExcel')}
-            </Button>
-            <Button 
-              onClick={onOpenAddDialog}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              {t('inventory.addFirstItem')}
-            </Button>
-          </div>
-        )}
+        <div className="flex justify-center gap-2">
+          <Button 
+            onClick={onOpenImportDialog}
+            variant="outline"
+            className="border-blue-200 text-blue-700 hover:bg-blue-50"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            {t('inventory.importFromExcel')}
+          </Button>
+          <Button 
+            onClick={onOpenAddDialog}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            {t('inventory.addFirstItem')}
+          </Button>
+        </div>
       </div>
     );
   }

@@ -1,59 +1,86 @@
 
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import AdvancedSearchBar from "./AdvancedSearchBar";
+import AdvancedFilters from "./AdvancedFilters";
+import { useAdvancedSearch } from "@/hooks/useAdvancedSearch";
+import { InventoryItem } from "@/store/inventoryStore";
 
 interface InventoryFiltersProps {
-  searchTerm: string;
-  selectedCategory: string;
-  categories: string[];
-  translatedCategories: string[];
-  onSearchChange: (value: string) => void;
-  onCategoryChange: (value: string) => void;
+  items: InventoryItem[];
+  onFilteredItemsChange: (items: InventoryItem[]) => void;
 }
 
 const InventoryFilters = ({
-  searchTerm,
-  selectedCategory,
-  categories,
-  translatedCategories,
-  onSearchChange,
-  onCategoryChange,
+  items,
+  onFilteredItemsChange,
 }: InventoryFiltersProps) => {
   const { t } = useTranslation();
+  const [showFilters, setShowFilters] = useState(false);
+  
+  const {
+    searchTerm,
+    filters,
+    filteredItems,
+    suggestions,
+    searchHistory,
+    setSearchTerm,
+    updateFilter,
+    clearFilters,
+    addToHistory,
+    clearHistory,
+  } = useAdvancedSearch(items);
+
+  // Extract unique values for filter options
+  const categories = [...new Set(items.map(item => item.category))];
+  const vendors = [...new Set(items.map(item => item.vendor).filter(Boolean))];
+  const locations = [...new Set(items.map(item => item.location).filter(Boolean))];
+
+  // Update parent component with filtered items
+  useEffect(() => {
+    onFilteredItemsChange(filteredItems);
+  }, [filteredItems, onFilteredItemsChange]);
+
+  const hasActiveFilters = Object.values(filters).some(value => 
+    value !== 'all' && value !== null && value !== ''
+  );
+
+  const handleSearch = (term: string) => {
+    if (term.trim()) {
+      addToHistory(term);
+    }
+  };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-lg shadow-sm border">
-      <div className="flex-1">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder={t('inventory.searchPlaceholder')}
-            value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10 border-gray-200"
-          />
-        </div>
+    <div className="space-y-4">
+      <div className="flex gap-4 bg-background p-4 rounded-lg border">
+        <AdvancedSearchBar
+          searchTerm={searchTerm}
+          suggestions={suggestions}
+          searchHistory={searchHistory}
+          onSearchChange={setSearchTerm}
+          onSuggestionSelect={setSearchTerm}
+          onHistorySelect={setSearchTerm}
+          onSearch={handleSearch}
+          onClearHistory={clearHistory}
+          onShowFilters={() => setShowFilters(true)}
+          hasActiveFilters={hasActiveFilters}
+        />
       </div>
-      <div className="sm:w-48">
-        <Select value={selectedCategory} onValueChange={onCategoryChange}>
-          <SelectTrigger className="border-gray-200">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-gray-400" />
-              <SelectValue placeholder="Category" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('inventory.allCategories')}</SelectItem>
-            {translatedCategories.map((category, index) => (
-              <SelectItem key={categories[index]} value={categories[index]}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+
+      <AdvancedFilters
+        filters={filters}
+        categories={categories}
+        vendors={vendors}
+        locations={locations}
+        onFilterChange={updateFilter}
+        onClearFilters={clearFilters}
+        isOpen={showFilters}
+        onOpenChange={setShowFilters}
+      />
     </div>
   );
 };

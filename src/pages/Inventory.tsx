@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useInventoryStore } from "@/store/inventoryStore";
 import AddItemDialog from "@/components/AddItemDialog";
@@ -16,10 +15,9 @@ import { InventoryItem } from "@/store/inventoryStore";
 
 const Inventory = () => {
   const { t } = useTranslation();
-  const { items, categories } = useInventoryStore();
-  const { translateItems, translateCategories } = useTranslatedInventory();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
+  const { items } = useInventoryStore();
+  const { translateItems } = useTranslatedInventory();
+  const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
@@ -42,18 +40,8 @@ const Inventory = () => {
     handleBarcodeScan 
   } = useZebraScanner();
 
-  // Get translated items and categories
+  // Get translated items
   const translatedItems = translateItems(items);
-  const translatedCategories = translateCategories(categories);
-
-  const filteredItems = translatedItems.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || item.category === translatedCategories[categories.indexOf(selectedCategory)] || 
-                           categories[translatedCategories.indexOf(selectedCategory)] === selectedCategory;
-    
-    return matchesSearch && matchesCategory;
-  });
 
   // Handler specifically for adding new items - only sets barcode and opens dialog
   const handleBarcodeForAddItem = (barcode: string) => {
@@ -157,20 +145,14 @@ const Inventory = () => {
       )}
 
       <InventoryFilters
-        searchTerm={searchTerm}
-        selectedCategory={selectedCategory}
-        categories={categories}
-        translatedCategories={translatedCategories}
-        onSearchChange={setSearchTerm}
-        onCategoryChange={setSelectedCategory}
+        items={translatedItems}
+        onFilteredItemsChange={setFilteredItems}
       />
 
       <InventoryGrid
         filteredItems={filteredItems}
         isMultiSelectMode={isMultiSelectMode}
         selectedItems={selectedItems}
-        searchTerm={searchTerm}
-        selectedCategory={selectedCategory}
         onSelectItem={handleSelectItem}
         onOpenImportDialog={() => setIsImportDialogOpen(true)}
         onOpenAddDialog={() => setIsAddDialogOpen(true)}
