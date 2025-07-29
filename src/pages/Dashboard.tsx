@@ -1,10 +1,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Package, AlertTriangle, TrendingUp, DollarSign, BarChart3, PieChart, Activity } from "lucide-react";
+import { Package, AlertTriangle, TrendingUp, DollarSign, BarChart3, PieChart as LucidePieChart, Activity } from "lucide-react";
 import { useInventoryStore } from "@/store/inventoryStore";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart as RechartsPieChart, Cell } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Cell, Pie } from "recharts";
 
 const Dashboard = () => {
   const { items } = useInventoryStore();
@@ -109,42 +109,63 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Low Stock Items */}
-      <Card className="bg-white border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
-            Low Stock Items
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {recentLowStock.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">All items are well stocked! 🎉</p>
-          ) : (
-            <div className="space-y-3">
-              {recentLowStock.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                      <Package className="h-5 w-5 text-red-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">{item.name}</h4>
-                      <p className="text-sm text-gray-600">{item.category}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="destructive" className="mb-1">
-                      {item.quantity} left
-                    </Badge>
-                    <p className="text-xs text-gray-500">Min: {item.lowStockThreshold}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Enhanced Analytics Dashboard */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Sales & Profit Trends */}
+        <Card className="bg-white border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-blue-600" />
+              Sales & Profit Trends
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={trendData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Line type="monotone" dataKey="sales" stroke="hsl(var(--chart-1))" strokeWidth={2} />
+                  <Line type="monotone" dataKey="profit" stroke="hsl(var(--chart-3))" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Category Distribution */}
+        <Card className="bg-white border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <LucidePieChart className="h-5 w-5 text-purple-600" />
+              Category Value Distribution
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Pie
+                    data={categoryChartData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                    nameKey="name"
+                  >
+                    {categoryChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Advanced Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -169,28 +190,31 @@ const Dashboard = () => {
               <span className="text-sm text-gray-600">Monthly Sales Est.</span>
               <span className="text-lg font-bold text-gray-900">${estimatedMonthlySales.toLocaleString()}</span>
             </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600">Low Stock Alert</span>
+              <span className="text-lg font-bold text-red-600">{lowStockItems} items</span>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Category Distribution */}
+        {/* Inventory Performance */}
         <Card className="bg-white border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <PieChart className="h-5 w-5 text-purple-600" />
-              Category Value
+              <BarChart3 className="h-5 w-5 text-green-600" />
+              Inventory Performance
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="h-[200px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <RechartsPieChart>
+                <BarChart data={Object.entries(categoryData).slice(0, 4).map(([name, value]) => ({ name, value }))}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
                   <ChartTooltip content={<ChartTooltipContent />} />
-                  <RechartsPieChart data={categoryChartData} cx="50%" cy="50%" outerRadius={60}>
-                    {categoryChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </RechartsPieChart>
-                </RechartsPieChart>
+                  <Bar dataKey="value" fill="hsl(var(--chart-2))" />
+                </BarChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
@@ -200,7 +224,7 @@ const Dashboard = () => {
         <Card className="bg-white border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-green-600" />
+              <LucidePieChart className="h-5 w-5 text-purple-600" />
               Top Categories
             </CardTitle>
           </CardHeader>
@@ -219,30 +243,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Sales & Profit Trends */}
-      <Card className="bg-white border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-blue-600" />
-            Sales & Profit Trends
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Line type="monotone" dataKey="sales" stroke="hsl(var(--chart-1))" strokeWidth={2} />
-                <Line type="monotone" dataKey="profit" stroke="hsl(var(--chart-3))" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </CardContent>
-      </Card>
     </div>
   );
 };
