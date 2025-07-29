@@ -161,69 +161,6 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
-
-      {/* Admin Tools */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              User Management
-            </CardTitle>
-            <CardDescription>
-              Manage user accounts, roles, and permissions
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium">Active Users</p>
-                  <p className="text-sm text-gray-600">Currently online</p>
-                </div>
-                <span className="text-2xl font-bold text-green-600">127</span>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium">Pending Approvals</p>
-                  <p className="text-sm text-gray-600">Require review</p>
-                </div>
-                <span className="text-2xl font-bold text-orange-600">8</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              System Configuration
-            </CardTitle>
-            <CardDescription>
-              Manage system settings and configurations
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium">Server Status</p>
-                  <p className="text-sm text-gray-600">All systems operational</p>
-                </div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              </div>
-              <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium">Database</p>
-                  <p className="text-sm text-gray-600">Healthy</p>
-                </div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };
