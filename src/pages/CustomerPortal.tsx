@@ -202,6 +202,71 @@ const CustomerPortal = () => {
         </Card>
       </div>
 
+      {/* Additional Analytics Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Queue Analytics */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              Queue Performance
+            </CardTitle>
+            <CardDescription>
+              Monthly queue usage and efficiency
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[250px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={purchaseAnalytics}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Bar dataKey="queueSize" fill="hsl(var(--chart-2))" />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Key Metrics */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Key Insights
+            </CardTitle>
+            <CardDescription>
+              Your performance metrics
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <div>
+                <p className="font-medium text-gray-900">Total Savings</p>
+                <p className="text-sm text-gray-600">This year</p>
+              </div>
+              <span className="text-2xl font-bold text-blue-600">$1,796</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
+              <div>
+                <p className="font-medium text-gray-900">Avg. Queue Size</p>
+                <p className="text-sm text-gray-600">Last 6 months</p>
+              </div>
+              <span className="text-2xl font-bold text-green-600">21</span>
+            </div>
+            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-100">
+              <div>
+                <p className="font-medium text-gray-900">Purchase Growth</p>
+                <p className="text-sm text-gray-600">Month over month</p>
+              </div>
+              <span className="text-2xl font-bold text-purple-600">+17%</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Category Performance */}
       <Card>
         <CardHeader>
