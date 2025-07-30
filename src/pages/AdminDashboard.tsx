@@ -1,45 +1,52 @@
 
-import { Users, Package, BarChart3, Settings, Shield, Activity, TrendingUp, PieChart as LucidePieChart } from 'lucide-react';
+import { Users, Package, BarChart3, Settings, Shield, Activity, TrendingUp, PieChart as LucidePieChart, ShoppingCart, Wallet, AlertTriangle, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
+import { useInventoryStore } from "@/store/inventoryStore";
+import { usePurchaseQueueStore } from "@/store/purchaseQueueStore";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Cell, Pie } from "recharts";
 
 const AdminDashboard = () => {
   const { user } = useAuth();
+  const { items } = useInventoryStore();
+  const { totalItems: queueItems, totalValue: queueValue } = usePurchaseQueueStore();
+
+  const lowStockItems = items.filter(item => item.quantity <= item.lowStockThreshold).length;
+  const estimatedMonthlySavings = queueValue * 0.15; // Assuming 15% savings from bulk purchases
 
   const adminStats = [
     {
-      title: 'Total Users',
-      value: '1,234',
-      change: '+12%',
-      icon: Users,
+      title: 'Queue Items',
+      value: queueItems.toString(),
+      change: 'Items in queue',
+      icon: ShoppingCart,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
-      title: 'Active Businesses',
-      value: '856',
-      change: '+8%',
-      icon: Package,
+      title: 'Low Stock Alert',
+      value: lowStockItems.toString(),
+      change: 'Need restocking',
+      icon: AlertTriangle,
+      color: 'text-red-600',
+      bgColor: 'bg-red-100',
+    },
+    {
+      title: 'Queue Value',
+      value: `$${queueValue.toFixed(2)}`,
+      change: 'Purchase queue value',
+      icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
     },
     {
-      title: 'System Health',
-      value: '99.9%',
-      change: 'Stable',
-      icon: Activity,
+      title: 'Monthly Savings',
+      value: `$${estimatedMonthlySavings.toFixed(2)}`,
+      change: 'Estimated bulk savings',
+      icon: Wallet,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
-    },
-    {
-      title: 'Revenue',
-      value: '$45,678',
-      change: '+15%',
-      icon: BarChart3,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100',
     },
   ];
 
