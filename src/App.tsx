@@ -23,8 +23,13 @@ import CustomerPortal from "./pages/CustomerPortal";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { offlineStorage } from "./lib/offlineStorage";
+import { syncManager } from "./lib/syncManager";
 
 const queryClient = new QueryClient();
+
+// Initialize offline storage when the app loads
+offlineStorage.init().catch(console.error);
 
 const AppContent = () => {
   const { user, isAuthenticated, loading } = useAuth();

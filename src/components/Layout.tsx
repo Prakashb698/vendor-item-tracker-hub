@@ -9,6 +9,7 @@ import PurchaseQueue from "./PurchaseQueue";
 import { MLChatBot } from "./MLChatBot";
 import { useTranslation } from "react-i18next";
 import { NotificationBell } from "./notifications/NotificationBell";
+import { ConnectionStatus } from "./ConnectionStatus";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -31,6 +32,7 @@ const Layout = ({ children }: LayoutProps) => {
           </div>
           <div className="flex items-center gap-4">
             {user?.role === 'customer' && <PurchaseQueue />}
+            <ConnectionStatus />
             <NotificationBell />
             <div className="text-right">
               <p className="text-sm font-medium text-gray-900">{user?.name}</p>
