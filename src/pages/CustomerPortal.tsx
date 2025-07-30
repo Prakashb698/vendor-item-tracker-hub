@@ -44,8 +44,8 @@ const CustomerPortal = () => {
     switch (statType) {
       case 'queue-items':
       case 'queue-value':
-        // Navigate to inventory and let PurchaseQueue handle opening
-        navigate('/inventory');
+        // Navigate to shopping cart
+        navigate('/cart');
         break;
       case 'low-stock':
         // Navigate to inventory with low stock filter
