@@ -1,18 +1,23 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Package, AlertTriangle, TrendingUp, DollarSign, BarChart3, PieChart as LucidePieChart, Activity } from "lucide-react";
+import { Package, AlertTriangle, TrendingUp, DollarSign, BarChart3, PieChart as LucidePieChart, Activity, ShoppingCart, Wallet } from "lucide-react";
 import { useInventoryStore } from "@/store/inventoryStore";
+import { usePurchaseQueueStore } from "@/store/purchaseQueueStore";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Cell, Pie } from "recharts";
 
 const Dashboard = () => {
   const { items } = useInventoryStore();
+  const { totalItems: queueItems, totalValue: queueValue } = usePurchaseQueueStore();
 
   const totalItems = items.length;
   const lowStockItems = items.filter(item => item.quantity <= item.lowStockThreshold).length;
   const totalValue = items.reduce((sum, item) => sum + (item.quantity * item.price), 0);
   const categoriesCount = new Set(items.map(item => item.category)).size;
+  
+  // Calculate monthly savings (estimate based on bulk purchasing)
+  const estimatedMonthlySavings = queueValue * 0.15; // Assuming 15% savings from bulk purchases
 
   const recentLowStock = items
     .filter(item => item.quantity <= item.lowStockThreshold)
@@ -66,12 +71,12 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="bg-white border-0 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Items</CardTitle>
-            <Package className="h-4 w-4 text-blue-600" />
+            <CardTitle className="text-sm font-medium text-gray-600">Queue Items</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{totalItems}</div>
-            <p className="text-xs text-gray-500">Active inventory items</p>
+            <div className="text-2xl font-bold text-gray-900">{queueItems}</div>
+            <p className="text-xs text-gray-500">Items in purchase queue</p>
           </CardContent>
         </Card>
 
@@ -88,23 +93,23 @@ const Dashboard = () => {
 
         <Card className="bg-white border-0 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Inventory Value</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Queue Value</CardTitle>
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">${totalValue.toFixed(2)}</div>
-            <p className="text-xs text-gray-500">Total stock value</p>
+            <div className="text-2xl font-bold text-gray-900">${queueValue.toFixed(2)}</div>
+            <p className="text-xs text-gray-500">Purchase queue value</p>
           </CardContent>
         </Card>
 
         <Card className="bg-white border-0 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Categories</CardTitle>
-            <TrendingUp className="h-4 w-4 text-purple-600" />
+            <CardTitle className="text-sm font-medium text-gray-600">Monthly Savings</CardTitle>
+            <Wallet className="h-4 w-4 text-purple-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{categoriesCount}</div>
-            <p className="text-xs text-gray-500">Product categories</p>
+            <div className="text-2xl font-bold text-gray-900">${estimatedMonthlySavings.toFixed(2)}</div>
+            <p className="text-xs text-gray-500">Estimated bulk savings</p>
           </CardContent>
         </Card>
       </div>
