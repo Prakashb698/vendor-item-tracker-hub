@@ -1,8 +1,9 @@
 
-import { Package, ShoppingCart, FileText, CreditCard, User, Bell, TrendingUp, BarChart3 } from 'lucide-react';
+import { Package, ShoppingCart, FileText, CreditCard, User, Bell, TrendingUp, BarChart3, AlertTriangle, DollarSign, Wallet } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useInventoryStore } from "@/store/inventoryStore";
 import { usePurchaseQueueStore } from '@/store/purchaseQueueStore';
 import { useNavigate } from 'react-router-dom';
 import PurchaseQueueComponent from '@/components/PurchaseQueue';
@@ -11,8 +12,12 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarC
 
 const CustomerPortal = () => {
   const { user } = useAuth();
+  const { items } = useInventoryStore();
   const { totalItems, totalValue } = usePurchaseQueueStore();
   const navigate = useNavigate();
+
+  const lowStockItems = items.filter(item => item.quantity <= item.lowStockThreshold).length;
+  const estimatedMonthlySavings = totalValue * 0.15; // Assuming 15% savings from bulk purchases
 
   const handleQuickAction = (action: string) => {
     switch (action) {
@@ -39,34 +44,34 @@ const CustomerPortal = () => {
     {
       title: 'Queue Items',
       value: totalItems.toString(),
-      description: 'Items in queue',
+      description: 'Items in purchase queue',
       icon: ShoppingCart,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
     },
     {
+      title: 'Low Stock Alert',
+      value: lowStockItems.toString(),
+      description: 'Items need restocking',
+      icon: AlertTriangle,
+      color: 'text-red-600',
+      bgColor: 'bg-red-100',
+    },
+    {
       title: 'Queue Value',
       value: `$${totalValue.toFixed(2)}`,
-      description: 'Total queue value',
-      icon: CreditCard,
+      description: 'Purchase queue value',
+      icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
     },
     {
-      title: 'Products',
-      value: '284',
-      description: 'In catalog',
-      icon: Package,
+      title: 'Monthly Savings',
+      value: `$${estimatedMonthlySavings.toFixed(2)}`,
+      description: 'Estimated bulk savings',
+      icon: Wallet,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
-    },
-    {
-      title: 'Reports',
-      value: '8',
-      description: 'Available',
-      icon: FileText,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100',
     },
   ];
 
