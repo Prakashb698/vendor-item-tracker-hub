@@ -40,6 +40,23 @@ const CustomerPortal = () => {
     }
   };
 
+  const handleStatClick = (statType: string) => {
+    switch (statType) {
+      case 'queue-items':
+      case 'queue-value':
+        // Navigate to inventory and let PurchaseQueue handle opening
+        navigate('/inventory');
+        break;
+      case 'low-stock':
+        // Navigate to inventory with low stock filter
+        navigate('/inventory');
+        break;
+      case 'savings':
+        navigate('/reports');
+        break;
+    }
+  };
+
   const customerStats = [
     {
       title: 'Queue Items',
@@ -48,6 +65,7 @@ const CustomerPortal = () => {
       icon: ShoppingCart,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100',
+      action: 'queue-items',
     },
     {
       title: 'Low Stock Alert',
@@ -56,6 +74,7 @@ const CustomerPortal = () => {
       icon: AlertTriangle,
       color: 'text-red-600',
       bgColor: 'bg-red-100',
+      action: 'low-stock',
     },
     {
       title: 'Queue Value',
@@ -64,6 +83,7 @@ const CustomerPortal = () => {
       icon: DollarSign,
       color: 'text-green-600',
       bgColor: 'bg-green-100',
+      action: 'queue-value',
     },
     {
       title: 'Monthly Savings',
@@ -72,6 +92,7 @@ const CustomerPortal = () => {
       icon: Wallet,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100',
+      action: 'savings',
     },
   ];
 
@@ -123,12 +144,16 @@ const CustomerPortal = () => {
       {/* Customer Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {customerStats.map((stat, index) => (
-          <Card key={index}>
+          <Card 
+            key={index} 
+            className="cursor-pointer hover:shadow-md transition-shadow duration-200"
+            onClick={() => handleStatClick(stat.action)}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
                 {stat.title}
               </CardTitle>
-              <div className={`w-8 h-8 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
+              <div className={`w-8 h-8 ${stat.bgColor} rounded-lg flex items-center justify-center transition-transform hover:scale-110 duration-200`}>
                 <stat.icon className={`h-4 w-4 ${stat.color}`} />
               </div>
             </CardHeader>
