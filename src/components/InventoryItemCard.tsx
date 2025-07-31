@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
 import EditItemDialog from "./EditItemDialog";
 import DeleteConfirmDialog from "./DeleteConfirmDialog";
+import AddToQueueDialog from "./AddToQueueDialog";
 import { useTranslation } from "react-i18next";
 
 interface InventoryItemCardProps {
@@ -26,6 +27,7 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
   const { addItem } = usePurchaseQueueStore();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAddToQueueDialogOpen, setIsAddToQueueDialogOpen] = useState(false);
   
   const isLowStock = item.quantity <= item.lowStockThreshold;
   const stockStatus = isLowStock ? 'low' : item.quantity <= item.lowStockThreshold * 2 ? 'medium' : 'high';
@@ -43,7 +45,11 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
   };
 
   const handleAddToQueue = () => {
-    addItem(item, 1);
+    setIsAddToQueueDialogOpen(true);
+  };
+
+  const handleQuantityConfirm = (quantity: number) => {
+    addItem(item, quantity);
   };
 
   const cardBorderClass = isMultiSelectMode && isSelected 
@@ -178,6 +184,12 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
         onOpenChange={setIsDeleteDialogOpen}
         itemName={item.name}
         onConfirm={handleDelete}
+      />
+      <AddToQueueDialog
+        item={item}
+        open={isAddToQueueDialogOpen}
+        onOpenChange={setIsAddToQueueDialogOpen}
+        onConfirm={handleQuantityConfirm}
       />
     </>
   );
