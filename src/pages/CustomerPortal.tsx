@@ -9,12 +9,14 @@ import { useNavigate } from 'react-router-dom';
 import PurchaseQueueComponent from '@/components/PurchaseQueue';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { useRef } from 'react';
 
 const CustomerPortal = () => {
   const { user } = useAuth();
   const { items } = useInventoryStore();
   const { totalItems, totalValue } = usePurchaseQueueStore();
   const navigate = useNavigate();
+  const purchaseQueueRef = useRef<{ open: () => void }>(null);
 
   const lowStockItems = items.filter(item => item.quantity <= item.lowStockThreshold).length;
   const estimatedMonthlySavings = totalValue * 0.15; // Assuming 15% savings from bulk purchases
@@ -44,8 +46,8 @@ const CustomerPortal = () => {
     switch (statType) {
       case 'queue-items':
       case 'queue-value':
-        // Navigate to inventory where purchase queue is managed
-        navigate('/inventory');
+        // Open purchase queue modal
+        purchaseQueueRef.current?.open();
         break;
       case 'low-stock':
         // Navigate to inventory with low stock filter
@@ -137,7 +139,7 @@ const CustomerPortal = () => {
             Profile
           </Button>
           {/* Add Purchase Queue Button in Header */}
-          <PurchaseQueueComponent />
+          <PurchaseQueueComponent ref={purchaseQueueRef} />
         </div>
       </div>
 
@@ -183,9 +185,14 @@ const CustomerPortal = () => {
               <Package className="h-4 w-4 mr-2" />
               View Inventory
             </Button>
-            <div className="w-full">
-              <PurchaseQueueComponent showLabel={true} />
-            </div>
+            <Button 
+              className="w-full justify-start" 
+              variant="outline"
+              onClick={() => purchaseQueueRef.current?.open()}
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              View Purchase Queue
+            </Button>
             <Button 
               className="w-full justify-start" 
               variant="outline"

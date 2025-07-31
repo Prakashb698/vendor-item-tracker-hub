@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, forwardRef, useImperativeHandle } from 'react';
 import { ShoppingCart as QueueIcon, Plus, Minus, X, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,9 +13,17 @@ interface PurchaseQueueProps {
   className?: string;
 }
 
-const PurchaseQueue = ({ showLabel = false, className }: PurchaseQueueProps) => {
+export interface PurchaseQueueRef {
+  open: () => void;
+}
+
+const PurchaseQueue = forwardRef<PurchaseQueueRef, PurchaseQueueProps>(({ showLabel = false, className }, ref) => {
   const { items, totalItems, totalValue, updateQuantity, removeItem, clearQueue } = usePurchaseQueueStore();
   const [isOpen, setIsOpen] = useState(false);
+
+  useImperativeHandle(ref, () => ({
+    open: () => setIsOpen(true)
+  }));
 
   const handlePlaceOrder = () => {
     console.log('Placing order:', items);
@@ -144,6 +152,8 @@ const PurchaseQueue = ({ showLabel = false, className }: PurchaseQueueProps) => 
       </SheetContent>
     </Sheet>
   );
-};
+});
+
+PurchaseQueue.displayName = 'PurchaseQueue';
 
 export default PurchaseQueue;
