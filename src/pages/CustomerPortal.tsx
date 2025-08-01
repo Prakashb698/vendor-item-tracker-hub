@@ -130,7 +130,11 @@ const CustomerPortal = () => {
           <p className="text-sm text-gray-500">{user?.businessName}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => navigate('/notifications')}
+          >
             <Bell className="h-4 w-4 mr-2" />
             Notifications
           </Button>
