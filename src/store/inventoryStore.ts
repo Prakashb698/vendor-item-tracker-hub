@@ -39,7 +39,9 @@ interface InventoryStore {
   clearData: () => void;
 }
 
-export const useInventoryStore = create<InventoryStore>()((set, get) => ({
+export const useInventoryStore = create<InventoryStore>()(
+  persist(
+    (set, get) => ({
   items: [],
   categories: [],
   isOnline: navigator.onLine,
@@ -246,4 +248,9 @@ export const useInventoryStore = create<InventoryStore>()((set, get) => ({
   setOnlineStatus: (status) => set({ isOnline: status }),
   setSyncStatus: (status) => set({ syncInProgress: status }),
   clearData: () => set({ items: [], categories: [] }),
-}));
+}),
+{
+  name: 'inventory-storage',
+  version: 2, // Increment version to clear old cache
+}
+));
