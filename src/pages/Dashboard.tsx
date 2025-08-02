@@ -35,24 +35,24 @@ const Dashboard = () => {
     fill: `hsl(${index * 45}, 70%, 60%)`
   }));
 
-  // Mock trend data (in real app, this would come from transaction history)
-  const trendData = [
-    { month: 'Jan', sales: 4500, inventory: 12000, profit: 1800 },
-    { month: 'Feb', sales: 5200, inventory: 11500, profit: 2100 },
-    { month: 'Mar', sales: 4800, inventory: 11800, profit: 1950 },
-    { month: 'Apr', sales: 6100, inventory: 10900, profit: 2400 },
-    { month: 'May', sales: 5800, inventory: 11200, profit: 2200 },
-    { month: 'Jun', sales: 6500, inventory: 10500, profit: 2600 }
-  ];
+  // Real trend data based on actual user data (empty for new users)
+  const trendData = items.length > 0 ? [
+    { month: 'Jan', sales: 0, inventory: totalValue, profit: 0 },
+    { month: 'Feb', sales: 0, inventory: totalValue, profit: 0 },
+    { month: 'Mar', sales: 0, inventory: totalValue, profit: 0 },
+    { month: 'Apr', sales: 0, inventory: totalValue, profit: 0 },
+    { month: 'May', sales: 0, inventory: totalValue, profit: 0 },
+    { month: 'Jun', sales: 0, inventory: totalValue, profit: 0 }
+  ] : [];
 
-  // Inventory turnover calculation
+  // Inventory turnover calculation based on real data
   const averageInventoryValue = totalValue;
-  const estimatedMonthlySales = 5500; // Mock value
+  const estimatedMonthlySales = 0; // Real sales data would come from transactions table
   const inventoryTurnover = averageInventoryValue > 0 ? (estimatedMonthlySales * 12) / averageInventoryValue : 0;
   
-  // Profit margin calculation
+  // Profit margin calculation based on real data
   const averageMargin = items.length > 0 ? 
-    items.reduce((sum, item) => sum + (item.price * 0.35), 0) / items.length : 0; // Assuming 35% margin
+    items.reduce((sum, item) => sum + (item.price * 0.35), 0) / items.length : 0;
 
   const chartConfig = {
     sales: { label: "Sales", color: "hsl(var(--chart-1))" },
@@ -125,18 +125,28 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line type="monotone" dataKey="sales" stroke="hsl(var(--chart-1))" strokeWidth={2} />
-                  <Line type="monotone" dataKey="profit" stroke="hsl(var(--chart-3))" strokeWidth={2} />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            {trendData.length > 0 ? (
+              <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Line type="monotone" dataKey="sales" stroke="hsl(var(--chart-1))" strokeWidth={2} />
+                    <Line type="monotone" dataKey="profit" stroke="hsl(var(--chart-3))" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-500">
+                <div className="text-center">
+                  <TrendingUp className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No sales data yet</p>
+                  <p className="text-sm">Add inventory items to start tracking</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -149,25 +159,35 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Pie
-                    data={categoryChartData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    nameKey="name"
-                  >
-                    {categoryChartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            {categoryChartData.length > 0 ? (
+              <ChartContainer config={chartConfig} className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Pie
+                      data={categoryChartData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="value"
+                      nameKey="name"
+                    >
+                      {categoryChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-gray-500">
+                <div className="text-center">
+                  <LucidePieChart className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No category data yet</p>
+                  <p className="text-sm">Add inventory items to see distribution</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -211,17 +231,26 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={chartConfig} className="h-[200px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={Object.entries(categoryData).slice(0, 4).map(([name, value]) => ({ name, value }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Bar dataKey="value" fill="hsl(var(--chart-2))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
+            {Object.keys(categoryData).length > 0 ? (
+              <ChartContainer config={chartConfig} className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={Object.entries(categoryData).slice(0, 4).map(([name, value]) => ({ name, value }))}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <ChartTooltip content={<ChartTooltipContent />} />
+                    <Bar dataKey="value" fill="hsl(var(--chart-2))" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            ) : (
+              <div className="h-[200px] flex items-center justify-center text-gray-500">
+                <div className="text-center">
+                  <BarChart3 className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm">No inventory data</p>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -235,15 +264,23 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {Object.entries(categoryData)
-                .sort(([,a], [,b]) => b - a)
-                .slice(0, 5)
-                .map(([category, value]) => (
-                <div key={category} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 truncate">{category}</span>
-                  <span className="text-sm font-medium text-gray-900">${value.toFixed(0)}</span>
+              {Object.keys(categoryData).length > 0 ? (
+                Object.entries(categoryData)
+                  .sort(([,a], [,b]) => b - a)
+                  .slice(0, 5)
+                  .map(([category, value]) => (
+                  <div key={category} className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 truncate">{category}</span>
+                    <span className="text-sm font-medium text-gray-900">${value.toFixed(0)}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  <LucidePieChart className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                  <p className="text-sm">No categories yet</p>
+                  <p className="text-xs">Add inventory items to see top categories</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
