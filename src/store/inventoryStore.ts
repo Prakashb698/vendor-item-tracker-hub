@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { offlineStorage } from '@/lib/offlineStorage';
 import { syncManager } from '@/lib/syncManager';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface InventoryItem {
   id: string;
@@ -25,125 +26,145 @@ interface InventoryStore {
   categories: string[];
   isOnline: boolean;
   syncInProgress: boolean;
-  addItem: (item: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateItem: (id: string, updates: Partial<InventoryItem>) => void;
-  deleteItem: (id: string) => void;
+  loading: boolean;
+  addItem: (item: Omit<InventoryItem, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateItem: (id: string, updates: Partial<InventoryItem>) => Promise<void>;
+  deleteItem: (id: string) => Promise<void>;
   addCategory: (category: string) => void;
   deleteCategory: (category: string) => void;
+  loadUserData: () => Promise<void>;
   loadOfflineData: () => Promise<void>;
   setOnlineStatus: (status: boolean) => void;
   setSyncStatus: (status: boolean) => void;
+  clearData: () => void;
 }
 
 export const useInventoryStore = create<InventoryStore>()(
   persist(
     (set, get) => ({
-      items: [
-        {
-          id: 'item-1',
-          name: 'Premium Coffee Beans',
-          description: 'High-quality arabica coffee beans from local farms',
-          category: 'Beverages',
-          quantity: 25,
-          price: 15.99,
-          lowStockThreshold: 10,
-          sku: 'COF-001',
-          location: 'A1-S2',
-          vendor: 'Local Farms Co.',
-          barcode: '123456789012',
-          createdAt: new Date('2024-01-15'),
-          updatedAt: new Date('2024-01-15'),
-        },
-        {
-          id: 'item-2',
-          name: 'Organic Honey',
-          description: 'Pure organic honey from local beekeepers',
-          category: 'Food',
-          quantity: 5,
-          price: 12.50,
-          lowStockThreshold: 8,
-          sku: 'HON-001',
-          location: 'B2-S1',
-          vendor: 'Bee Natural Inc.',
-          barcode: '234567890123',
-          createdAt: new Date('2024-01-16'),
-          updatedAt: new Date('2024-01-16'),
-        },
-        {
-          id: 'item-3',
-          name: 'Handmade Soap',
-          description: 'Natural handmade soap with essential oils',
-          category: 'Personal Care',
-          quantity: 45,
-          price: 8.99,
-          lowStockThreshold: 15,
-          sku: 'SOAP-001',
-          location: 'C1-S3',
-          vendor: 'Artisan Soaps Ltd.',
-          barcode: '345678901234',
-          createdAt: new Date('2024-01-17'),
-          updatedAt: new Date('2024-01-17'),
-        },
-      ],
-      categories: ['Beverages', 'Food', 'Personal Care', 'Electronics', 'Clothing'],
+      items: [],
+      categories: [],
       isOnline: navigator.onLine,
       syncInProgress: false,
+      loading: false,
       
-      addItem: (itemData) => set((state) => {
-        const uniqueId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        const newItem = {
-          ...itemData,
-          id: uniqueId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
+      addItem: async (itemData) => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error('Not authenticated');
 
-        // Queue for sync if offline or online
-        syncManager.queueChange({
-          type: 'create',
-          table: 'inventory_items',
-          data: newItem
-        });
+          const newItem = {
+            name: itemData.name,
+            description: itemData.description,
+            category: itemData.category,
+            quantity: itemData.quantity,
+            price: itemData.price,
+            low_stock_threshold: itemData.lowStockThreshold,
+            sku: itemData.sku,
+            location: itemData.location,
+            vendor: itemData.vendor,
+            barcode: itemData.barcode,
+            user_id: user.id,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
 
-        return {
-          items: [...state.items, newItem],
-        };
-      }),
-      
-      updateItem: (id, updates) => set((state) => {
-        const updatedItems = state.items.map((item) =>
-          item.id === id
-            ? { ...item, ...updates, updatedAt: new Date() }
-            : item
-        );
+          const { data, error } = await supabase
+            .from('inventory_items')
+            .insert(newItem)
+            .select()
+            .single();
 
-        // Queue for sync if offline or online
-        const updatedItem = updatedItems.find(item => item.id === id);
-        if (updatedItem) {
-          syncManager.queueChange({
-            type: 'update',
-            table: 'inventory_items',
-            data: updates,
-            itemId: id
-          });
+          if (error) throw error;
+
+          const formattedItem: InventoryItem = {
+            id: data.id,
+            name: data.name,
+            description: data.description || '',
+            category: data.category,
+            quantity: data.quantity,
+            price: Number(data.price),
+            lowStockThreshold: data.low_stock_threshold,
+            sku: data.sku,
+            location: data.location || '',
+            vendor: data.vendor || '',
+            barcode: data.barcode || '',
+            createdAt: new Date(data.created_at),
+            updatedAt: new Date(data.updated_at),
+          };
+
+          set((state) => ({
+            items: [...state.items, formattedItem],
+          }));
+        } catch (error) {
+          console.error('Failed to add item:', error);
+          throw error;
         }
-
-        return { items: updatedItems };
-      }),
+      },
       
-      deleteItem: (id) => set((state) => {
-        // Queue for sync if offline or online
-        syncManager.queueChange({
-          type: 'delete',
-          table: 'inventory_items',
-          data: {},
-          itemId: id
-        });
+      updateItem: async (id, updates) => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error('Not authenticated');
 
-        return {
-          items: state.items.filter((item) => item.id !== id),
-        };
-      }),
+          const dbUpdates: any = {
+            updated_at: new Date().toISOString(),
+          };
+          
+          // Map frontend fields to database fields
+          if (updates.name !== undefined) dbUpdates.name = updates.name;
+          if (updates.description !== undefined) dbUpdates.description = updates.description;
+          if (updates.category !== undefined) dbUpdates.category = updates.category;
+          if (updates.quantity !== undefined) dbUpdates.quantity = updates.quantity;
+          if (updates.price !== undefined) dbUpdates.price = updates.price;
+          if (updates.lowStockThreshold !== undefined) dbUpdates.low_stock_threshold = updates.lowStockThreshold;
+          if (updates.sku !== undefined) dbUpdates.sku = updates.sku;
+          if (updates.location !== undefined) dbUpdates.location = updates.location;
+          if (updates.vendor !== undefined) dbUpdates.vendor = updates.vendor;
+          if (updates.barcode !== undefined) dbUpdates.barcode = updates.barcode;
+
+          const { error } = await supabase
+            .from('inventory_items')
+            .update(dbUpdates)
+            .eq('id', id)
+            .eq('user_id', user.id);
+
+          if (error) throw error;
+
+          set((state) => ({
+            items: state.items.map((item) =>
+              item.id === id
+                ? { ...item, ...updates, updatedAt: new Date() }
+                : item
+            ),
+          }));
+        } catch (error) {
+          console.error('Failed to update item:', error);
+          throw error;
+        }
+      },
+      
+      deleteItem: async (id) => {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error('Not authenticated');
+
+          const { error } = await supabase
+            .from('inventory_items')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', user.id);
+
+          if (error) throw error;
+
+          set((state) => ({
+            items: state.items.filter((item) => item.id !== id),
+          }));
+        } catch (error) {
+          console.error('Failed to delete item:', error);
+          throw error;
+        }
+      },
       
       addCategory: (category) => set((state) => ({
         categories: state.categories.includes(category)
@@ -160,6 +181,60 @@ export const useInventoryStore = create<InventoryStore>()(
         ),
       })),
 
+      loadUserData: async () => {
+        try {
+          set({ loading: true });
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            set({ items: [], categories: [], loading: false });
+            return;
+          }
+
+          // Load inventory items
+          const { data: itemsData, error: itemsError } = await supabase
+            .from('inventory_items')
+            .select('*')
+            .eq('user_id', user.id);
+
+          if (itemsError) throw itemsError;
+
+          // Load categories
+          const { data: categoriesData, error: categoriesError } = await supabase
+            .from('inventory_categories')
+            .select('*')
+            .eq('user_id', user.id);
+
+          if (categoriesError) throw categoriesError;
+
+          const formattedItems: InventoryItem[] = (itemsData || []).map(item => ({
+            id: item.id,
+            name: item.name,
+            description: item.description || '',
+            category: item.category,
+            quantity: item.quantity,
+            price: Number(item.price),
+            lowStockThreshold: item.low_stock_threshold,
+            sku: item.sku,
+            location: item.location || '',
+            vendor: item.vendor || '',
+            barcode: item.barcode || '',
+            createdAt: new Date(item.created_at),
+            updatedAt: new Date(item.updated_at),
+          }));
+
+          const categories = (categoriesData || []).map(cat => cat.name);
+
+          set({ 
+            items: formattedItems, 
+            categories: categories.length > 0 ? categories : ['Beverages', 'Food', 'Personal Care', 'Electronics', 'Clothing'],
+            loading: false 
+          });
+        } catch (error) {
+          console.error('Failed to load user data:', error);
+          set({ loading: false });
+        }
+      },
+
       loadOfflineData: async () => {
         try {
           await offlineStorage.init();
@@ -172,6 +247,7 @@ export const useInventoryStore = create<InventoryStore>()(
 
       setOnlineStatus: (status) => set({ isOnline: status }),
       setSyncStatus: (status) => set({ syncInProgress: status }),
+      clearData: () => set({ items: [], categories: [] }),
     }),
     {
       name: 'inventory-storage',

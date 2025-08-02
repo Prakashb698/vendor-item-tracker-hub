@@ -42,7 +42,7 @@ const InventoryFilters = ({
   // Update parent component with filtered items
   useEffect(() => {
     onFilteredItemsChange(filteredItems);
-  }, [filteredItems, onFilteredItemsChange]);
+  }, [filteredItems]);
 
   const hasActiveFilters = Object.values(filters).some(value => 
     value !== 'all' && value !== null && value !== ''

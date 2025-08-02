@@ -240,7 +240,7 @@ const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
       
       for (const item of previewItems) {
         console.log("Importing item:", item);
-        addItem(item);
+        await addItem(item);
         importedCount++;
       }
 

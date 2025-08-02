@@ -38,7 +38,7 @@ const AddItemDialog = ({ open, onOpenChange, scannedBarcode }: AddItemDialogProp
     }
   }, [scannedBarcode, open]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.category || !formData.quantity || !formData.price) {
@@ -50,23 +50,32 @@ const AddItemDialog = ({ open, onOpenChange, scannedBarcode }: AddItemDialogProp
       return;
     }
 
-    addItem({
-      name: formData.name,
-      description: formData.description,
-      category: formData.category,
-      quantity: parseInt(formData.quantity),
-      price: parseFloat(formData.price),
-      lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
-      sku: formData.sku || `SKU-${Date.now()}`,
-      location: formData.location || "Not specified",
-      vendor: formData.vendor || "Not specified",
-      barcode: formData.barcode || "",
-    });
+    try {
+      await addItem({
+        name: formData.name,
+        description: formData.description,
+        category: formData.category,
+        quantity: parseInt(formData.quantity),
+        price: parseFloat(formData.price),
+        lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
+        sku: formData.sku || `SKU-${Date.now()}`,
+        location: formData.location || "Not specified",
+        vendor: formData.vendor || "Not specified",
+        barcode: formData.barcode || "",
+      });
 
-    toast({
-      title: "Item Added",
-      description: `${formData.name} has been added to your inventory.`,
-    });
+      toast({
+        title: "Item Added",
+        description: `${formData.name} has been added to your inventory.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add item. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setFormData({
       name: "",

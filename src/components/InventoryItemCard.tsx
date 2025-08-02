@@ -40,8 +40,12 @@ const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false
     }
   };
 
-  const handleDelete = () => {
-    deleteItem(item.id);
+  const handleDelete = async () => {
+    try {
+      await deleteItem(item.id);
+    } catch (error) {
+      console.error('Failed to delete item:', error);
+    }
   };
 
   const handleAddToQueue = () => {
