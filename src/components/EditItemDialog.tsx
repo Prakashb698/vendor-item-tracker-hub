@@ -47,7 +47,7 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
     }
   }, [item]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.category || !formData.quantity || !formData.price) {
@@ -59,32 +59,23 @@ const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
       return;
     }
 
-    try {
-      await updateItem(item.id, {
-        name: formData.name,
-        description: formData.description,
-        category: formData.category,
-        quantity: parseInt(formData.quantity),
-        price: parseFloat(formData.price),
-        lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
-        sku: formData.sku,
-        location: formData.location || "Not specified",
-        vendor: formData.vendor || "Not specified",
-        barcode: formData.barcode || "",
-      });
+    updateItem(item.id, {
+      name: formData.name,
+      description: formData.description,
+      category: formData.category,
+      quantity: parseInt(formData.quantity),
+      price: parseFloat(formData.price),
+      lowStockThreshold: parseInt(formData.lowStockThreshold) || 5,
+      sku: formData.sku,
+      location: formData.location || "Not specified",
+      vendor: formData.vendor || "Not specified",
+      barcode: formData.barcode || "",
+    });
 
-      toast({
-        title: "Item Updated",
-        description: `${formData.name} has been updated successfully.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update item. Please try again.",
-        variant: "destructive",
-      });
-      return;
-    }
+    toast({
+      title: "Item Updated",
+      description: `${formData.name} has been updated successfully.`,
+    });
 
     onOpenChange(false);
   };

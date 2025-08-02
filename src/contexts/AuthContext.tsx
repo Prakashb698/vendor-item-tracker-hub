@@ -1,7 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthContextType } from '@/types/user';
-import { useInventoryStore } from '@/store/inventoryStore';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -20,19 +19,15 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { loadUserData, clearData } = useInventoryStore();
 
   useEffect(() => {
     // Check for stored user session
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      // Load user-specific data
-      loadUserData();
+      setUser(JSON.parse(storedUser));
     }
     setLoading(false);
-  }, [loadUserData]);
+  }, []);
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
@@ -49,8 +44,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setUser(mockUser);
       localStorage.setItem('user', JSON.stringify(mockUser));
-      // Load user-specific data
-      await loadUserData();
     } finally {
       setLoading(false);
     }
@@ -71,8 +64,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
-      // Load user-specific data
-      await loadUserData();
     } finally {
       setLoading(false);
     }
@@ -81,8 +72,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signOut = () => {
     setUser(null);
     localStorage.removeItem('user');
-    // Clear user-specific data
-    clearData();
   };
 
   const value: AuthContextType = {
