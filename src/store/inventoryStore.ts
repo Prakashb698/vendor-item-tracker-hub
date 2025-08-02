@@ -251,6 +251,17 @@ export const useInventoryStore = create<InventoryStore>()(
     }),
     {
       name: 'inventory-storage',
+      version: 1, // Increment version to clear old cached data
+      migrate: (persistedState, version) => {
+        // Clear all persisted data when migrating
+        return {
+          items: [],
+          categories: [],
+          isOnline: navigator.onLine,
+          syncInProgress: false,
+          loading: false,
+        };
+      },
     }
   )
 );
