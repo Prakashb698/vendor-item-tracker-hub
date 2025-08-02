@@ -50,9 +50,18 @@ export const useInventoryStore = create<InventoryStore>()(
   
   addItem: async (itemData) => {
     try {
-      // For now, use a mock user ID since we're using local auth
-      // TODO: Replace with proper Supabase auth when implemented
-      const mockUserId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).id : null;
+      // Get user from localStorage safely
+      let mockUserId = null;
+      try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          mockUserId = user.id;
+        }
+      } catch (e) {
+        console.error('Failed to parse user from localStorage:', e);
+      }
+      
       if (!mockUserId) throw new Error('Not authenticated');
 
       const newItem = {
@@ -106,7 +115,17 @@ export const useInventoryStore = create<InventoryStore>()(
   
   updateItem: async (id, updates) => {
     try {
-      const mockUserId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).id : null;
+      let mockUserId = null;
+      try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          mockUserId = user.id;
+        }
+      } catch (e) {
+        console.error('Failed to parse user from localStorage:', e);
+      }
+      
       if (!mockUserId) throw new Error('Not authenticated');
 
       const dbUpdates: any = {
@@ -148,7 +167,17 @@ export const useInventoryStore = create<InventoryStore>()(
   
   deleteItem: async (id) => {
     try {
-      const mockUserId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).id : null;
+      let mockUserId = null;
+      try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          mockUserId = user.id;
+        }
+      } catch (e) {
+        console.error('Failed to parse user from localStorage:', e);
+      }
+      
       if (!mockUserId) throw new Error('Not authenticated');
 
       const { error } = await supabase
@@ -186,7 +215,17 @@ export const useInventoryStore = create<InventoryStore>()(
   loadUserData: async () => {
     try {
       set({ loading: true });
-      const mockUserId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).id : null;
+      let mockUserId = null;
+      try {
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          mockUserId = user.id;
+        }
+      } catch (e) {
+        console.error('Failed to parse user from localStorage:', e);
+      }
+      
       if (!mockUserId) {
         set({ items: [], categories: [], loading: false });
         return;
