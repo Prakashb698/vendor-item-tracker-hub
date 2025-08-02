@@ -65,8 +65,8 @@ const CustomerPortal = () => {
       value: totalItems.toString(),
       description: 'Items in purchase queue',
       icon: ShoppingCart,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
       action: 'queue-items',
     },
     {
@@ -74,8 +74,8 @@ const CustomerPortal = () => {
       value: lowStockItems.toString(),
       description: 'Items need restocking',
       icon: AlertTriangle,
-      color: 'text-red-600',
-      bgColor: 'bg-red-100',
+      color: 'text-destructive',
+      bgColor: 'bg-destructive/10',
       action: 'low-stock',
     },
     {
@@ -83,8 +83,8 @@ const CustomerPortal = () => {
       value: `$${totalValue.toFixed(2)}`,
       description: 'Purchase queue value',
       icon: DollarSign,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
       action: 'queue-value',
     },
     {
@@ -92,8 +92,8 @@ const CustomerPortal = () => {
       value: `$${estimatedMonthlySavings.toFixed(2)}`,
       description: 'Estimated bulk savings',
       icon: Wallet,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100',
+      color: 'text-accent-foreground',
+      bgColor: 'bg-accent/50',
       action: 'savings',
     },
   ];
@@ -122,12 +122,12 @@ const CustomerPortal = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customer Portal</h1>
-          <p className="text-gray-600">Welcome back, {user?.name}</p>
-          <p className="text-sm text-gray-500">{user?.businessName}</p>
+          <h1 className="text-2xl font-bold text-foreground">Customer Portal</h1>
+          <p className="text-muted-foreground">Welcome back, {user?.name}</p>
+          <p className="text-sm text-muted-foreground">{user?.businessName}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button 
@@ -152,11 +152,12 @@ const CustomerPortal = () => {
         {customerStats.map((stat, index) => (
           <Card 
             key={index} 
-            className="cursor-pointer hover:shadow-md transition-shadow duration-200"
+            className="cursor-pointer hover:shadow-md transition-all duration-200 hover:scale-105 animate-scale-in"
             onClick={() => handleStatClick(stat.action)}
+            style={{ animationDelay: `${index * 100}ms` }}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
               <div className={`w-8 h-8 ${stat.bgColor} rounded-lg flex items-center justify-center transition-transform hover:scale-110 duration-200`}>
@@ -164,8 +165,8 @@ const CustomerPortal = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-              <p className="text-xs text-gray-600 mt-1">{stat.description}</p>
+              <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+              <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
             </CardContent>
           </Card>
         ))}
@@ -283,26 +284,26 @@ const CustomerPortal = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+            <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20 transition-colors hover:bg-primary/15">
               <div>
-                <p className="font-medium text-gray-900">Total Savings</p>
-                <p className="text-sm text-gray-600">This year</p>
+                <p className="font-medium text-foreground">Total Savings</p>
+                <p className="text-sm text-muted-foreground">This year</p>
               </div>
-              <span className="text-2xl font-bold text-blue-600">$1,796</span>
+              <span className="text-2xl font-bold text-primary">$1,796</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
+            <div className="flex items-center justify-between p-3 bg-accent rounded-lg border border-accent-foreground/20 transition-colors hover:bg-accent/80">
               <div>
-                <p className="font-medium text-gray-900">Avg. Queue Size</p>
-                <p className="text-sm text-gray-600">Last 6 months</p>
+                <p className="font-medium text-foreground">Avg. Queue Size</p>
+                <p className="text-sm text-muted-foreground">Last 6 months</p>
               </div>
-              <span className="text-2xl font-bold text-green-600">21</span>
+              <span className="text-2xl font-bold text-accent-foreground">21</span>
             </div>
-            <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-100">
+            <div className="flex items-center justify-between p-3 bg-secondary rounded-lg border border-secondary-foreground/20 transition-colors hover:bg-secondary/80">
               <div>
-                <p className="font-medium text-gray-900">Purchase Growth</p>
-                <p className="text-sm text-gray-600">Month over month</p>
+                <p className="font-medium text-foreground">Purchase Growth</p>
+                <p className="text-sm text-muted-foreground">Month over month</p>
               </div>
-              <span className="text-2xl font-bold text-purple-600">+17%</span>
+              <span className="text-2xl font-bold text-secondary-foreground">+17%</span>
             </div>
           </CardContent>
         </Card>
@@ -322,14 +323,14 @@ const CustomerPortal = () => {
         <CardContent>
           <div className="space-y-4">
             {categoryData.map((category, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg transition-colors hover:bg-muted/80">
                 <div>
-                  <p className="font-medium text-gray-900">{category.name}</p>
-                  <p className="text-sm text-gray-600">${category.value.toLocaleString()} spent</p>
+                  <p className="font-medium text-foreground">{category.name}</p>
+                  <p className="text-sm text-muted-foreground">${category.value.toLocaleString()} spent</p>
                 </div>
                 <div className="text-right">
-                  <span className="text-sm font-medium text-green-600">{category.trend}</span>
-                  <p className="text-xs text-gray-500">vs last month</p>
+                  <span className="text-sm font-medium text-primary">{category.trend}</span>
+                  <p className="text-xs text-muted-foreground">vs last month</p>
                 </div>
               </div>
             ))}
