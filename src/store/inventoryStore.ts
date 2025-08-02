@@ -50,8 +50,10 @@ export const useInventoryStore = create<InventoryStore>()(
   
   addItem: async (itemData) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      // For now, use a mock user ID since we're using local auth
+      // TODO: Replace with proper Supabase auth when implemented
+      const mockUserId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).id : null;
+      if (!mockUserId) throw new Error('Not authenticated');
 
       const newItem = {
         name: itemData.name,
@@ -64,7 +66,7 @@ export const useInventoryStore = create<InventoryStore>()(
         location: itemData.location,
         vendor: itemData.vendor,
         barcode: itemData.barcode,
-        user_id: user.id,
+        user_id: mockUserId,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
@@ -104,8 +106,8 @@ export const useInventoryStore = create<InventoryStore>()(
   
   updateItem: async (id, updates) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const mockUserId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).id : null;
+      if (!mockUserId) throw new Error('Not authenticated');
 
       const dbUpdates: any = {
         updated_at: new Date().toISOString(),
@@ -127,7 +129,7 @@ export const useInventoryStore = create<InventoryStore>()(
         .from('inventory_items')
         .update(dbUpdates)
         .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('user_id', mockUserId);
 
       if (error) throw error;
 
@@ -146,14 +148,14 @@ export const useInventoryStore = create<InventoryStore>()(
   
   deleteItem: async (id) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const mockUserId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).id : null;
+      if (!mockUserId) throw new Error('Not authenticated');
 
       const { error } = await supabase
         .from('inventory_items')
         .delete()
         .eq('id', id)
-        .eq('user_id', user.id);
+        .eq('user_id', mockUserId);
 
       if (error) throw error;
 
@@ -184,8 +186,8 @@ export const useInventoryStore = create<InventoryStore>()(
   loadUserData: async () => {
     try {
       set({ loading: true });
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const mockUserId = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!).id : null;
+      if (!mockUserId) {
         set({ items: [], categories: [], loading: false });
         return;
       }
@@ -194,7 +196,7 @@ export const useInventoryStore = create<InventoryStore>()(
       const { data: itemsData, error: itemsError } = await supabase
         .from('inventory_items')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', mockUserId);
 
       if (itemsError) throw itemsError;
 
@@ -202,7 +204,7 @@ export const useInventoryStore = create<InventoryStore>()(
       const { data: categoriesData, error: categoriesError } = await supabase
         .from('inventory_categories')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', mockUserId);
 
       if (categoriesError) throw categoriesError;
 
