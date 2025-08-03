@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { offlineStorage } from '@/lib/offlineStorage';
@@ -38,54 +37,8 @@ interface InventoryStore {
 export const useInventoryStore = create<InventoryStore>()(
   persist(
     (set, get) => ({
-      items: [
-        {
-          id: 'item-1',
-          name: 'Premium Coffee Beans',
-          description: 'High-quality arabica coffee beans from local farms',
-          category: 'Beverages',
-          quantity: 25,
-          price: 15.99,
-          lowStockThreshold: 10,
-          sku: 'COF-001',
-          location: 'A1-S2',
-          vendor: 'Local Farms Co.',
-          barcode: '123456789012',
-          createdAt: new Date('2024-01-15'),
-          updatedAt: new Date('2024-01-15'),
-        },
-        {
-          id: 'item-2',
-          name: 'Organic Honey',
-          description: 'Pure organic honey from local beekeepers',
-          category: 'Food',
-          quantity: 5,
-          price: 12.50,
-          lowStockThreshold: 8,
-          sku: 'HON-001',
-          location: 'B2-S1',
-          vendor: 'Bee Natural Inc.',
-          barcode: '234567890123',
-          createdAt: new Date('2024-01-16'),
-          updatedAt: new Date('2024-01-16'),
-        },
-        {
-          id: 'item-3',
-          name: 'Handmade Soap',
-          description: 'Natural handmade soap with essential oils',
-          category: 'Personal Care',
-          quantity: 45,
-          price: 8.99,
-          lowStockThreshold: 15,
-          sku: 'SOAP-001',
-          location: 'C1-S3',
-          vendor: 'Artisan Soaps Ltd.',
-          barcode: '345678901234',
-          createdAt: new Date('2024-01-17'),
-          updatedAt: new Date('2024-01-17'),
-        },
-      ],
-      categories: ['Beverages', 'Food', 'Personal Care', 'Electronics', 'Clothing'],
+      items: [], // Start with empty array for new accounts
+      categories: [], // Start with empty categories for new accounts
       isOnline: navigator.onLine,
       syncInProgress: false,
       
@@ -175,6 +128,7 @@ export const useInventoryStore = create<InventoryStore>()(
     }),
     {
       name: 'inventory-storage',
+      version: 1, // Increment version to clear old data
     }
   )
 );
