@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useInventoryStore } from "@/store/inventoryStore";
+import { useUserInventory } from "@/hooks/useUserInventory";
 import { toast } from "@/hooks/use-toast";
 
 interface AddItemDialogProps {
@@ -15,7 +15,7 @@ interface AddItemDialogProps {
 }
 
 const AddItemDialog = ({ open, onOpenChange, scannedBarcode }: AddItemDialogProps) => {
-  const { addItem, categories, addCategory } = useInventoryStore();
+  const { addItem, categories, addCategory } = useUserInventory();
   const [formData, setFormData] = useState({
     name: "",
     description: "",

@@ -3,7 +3,7 @@ import { Package, ShoppingCart, FileText, CreditCard, User, Bell, TrendingUp, Ba
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { useInventoryStore } from "@/store/inventoryStore";
+import { useUserInventory } from "@/hooks/useUserInventory";
 import { usePurchaseQueueStore } from '@/store/purchaseQueueStore';
 import { useNavigate } from 'react-router-dom';
 import PurchaseQueueComponent from '@/components/PurchaseQueue';
@@ -13,7 +13,7 @@ import { useRef } from 'react';
 
 const CustomerPortal = () => {
   const { user, profile } = useAuth();
-  const { items } = useInventoryStore();
+  const { items } = useUserInventory();
   const { totalItems, totalValue } = usePurchaseQueueStore();
   const navigate = useNavigate();
   const purchaseQueueRef = useRef<{ open: () => void }>(null);

@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useEffect } from "react";
-import { useInventoryStore } from "@/store/inventoryStore";
+import { useUserInventory } from "@/hooks/useUserInventory";
 import { toast } from "@/hooks/use-toast";
 
 interface BluetoothNavigator extends Navigator {
@@ -41,7 +41,7 @@ export const useZebraScanner = () => {
   const [lastScanTime, setLastScanTime] = useState<number>(0);
   const [connectedDevice, setConnectedDevice] = useState<BluetoothDevice | null>(null);
   const [scanBuffer, setScanBuffer] = useState<string>("");
-  const { items } = useInventoryStore();
+  const { items } = useUserInventory();
 
   // Check if Web Bluetooth is supported
   const isWebBluetoothSupported = useCallback(() => {

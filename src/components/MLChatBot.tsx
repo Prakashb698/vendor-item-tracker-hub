@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useInventoryStore } from '@/store/inventoryStore';
+import { useUserInventory } from '@/hooks/useUserInventory';
 import { pipeline, env } from '@huggingface/transformers';
 
 // Configure transformers.js
@@ -38,7 +38,7 @@ export const MLChatBot = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isModelLoading, setIsModelLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { items } = useInventoryStore();
+  const { items } = useUserInventory();
 
   // ML models
   const [classifier, setClassifier] = useState<any>(null);

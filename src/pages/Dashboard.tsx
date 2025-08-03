@@ -2,13 +2,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Package, AlertTriangle, TrendingUp, DollarSign, BarChart3, PieChart as LucidePieChart, Activity, ShoppingCart, Wallet } from "lucide-react";
-import { useInventoryStore } from "@/store/inventoryStore";
+import { useUserInventory } from "@/hooks/useUserInventory";
 import { usePurchaseQueueStore } from "@/store/purchaseQueueStore";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Cell, Pie } from "recharts";
 
 const Dashboard = () => {
-  const { items } = useInventoryStore();
+  const { items } = useUserInventory();
   const { totalItems: queueItems, totalValue: queueValue } = usePurchaseQueueStore();
 
   const totalItems = items.length;
@@ -24,7 +24,7 @@ const Dashboard = () => {
     .slice(0, 5);
 
   // Analytics calculations
-  const categoryData = items.reduce((acc, item) => {
+  const categoryData: Record<string, number> = items.reduce((acc, item) => {
     acc[item.category] = (acc[item.category] || 0) + (item.quantity * item.price);
     return acc;
   }, {} as Record<string, number>);
@@ -236,12 +236,12 @@ const Dashboard = () => {
           <CardContent>
             <div className="space-y-3">
               {Object.entries(categoryData)
-                .sort(([,a], [,b]) => b - a)
+                .sort(([,a], [,b]) => (b as number) - (a as number))
                 .slice(0, 5)
                 .map(([category, value]) => (
                 <div key={category} className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 truncate">{category}</span>
-                  <span className="text-sm font-medium text-gray-900">${value.toFixed(0)}</span>
+                  <span className="text-sm font-medium text-gray-900">${(value as number).toFixed(0)}</span>
                 </div>
               ))}
             </div>

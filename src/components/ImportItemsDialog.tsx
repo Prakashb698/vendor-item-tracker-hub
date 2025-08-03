@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useInventoryStore } from "@/store/inventoryStore";
+import { useUserInventory } from "@/hooks/useUserInventory";
 import { toast } from "@/hooks/use-toast";
 import { Upload, Download, FileText, AlertCircle } from "lucide-react";
 
@@ -13,7 +13,7 @@ interface ImportItemsDialogProps {
 }
 
 const ImportItemsDialog = ({ open, onOpenChange }: ImportItemsDialogProps) => {
-  const { addItem } = useInventoryStore();
+  const { addItem } = useUserInventory();
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [previewItems, setPreviewItems] = useState<any[]>([]);

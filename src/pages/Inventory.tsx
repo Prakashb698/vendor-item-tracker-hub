@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useInventoryStore } from "@/store/inventoryStore";
+import { useUserInventory } from "@/hooks/useUserInventory";
 import AddItemDialog from "@/components/AddItemDialog";
 import ImportItemsDialog from "@/components/ImportItemsDialog";
 import BarcodeScanner from "@/components/BarcodeScanner";
@@ -15,7 +15,7 @@ import { InventoryItem } from "@/store/inventoryStore";
 
 const Inventory = () => {
   const { t } = useTranslation();
-  const { items } = useInventoryStore();
+  const { items } = useUserInventory();
   const { translateItems } = useTranslatedInventory();
   const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -100,7 +100,9 @@ const Inventory = () => {
       selectedItems.forEach(itemId => {
         const itemToDelete = items.find(item => item.id === itemId);
         if (itemToDelete) {
-          useInventoryStore.getState().deleteItem(itemId);
+          // Delete using the hook - we'll get deleteItem through useUserInventory
+          const { deleteItem } = useUserInventory();
+          deleteItem(itemId);
         }
       });
       setSelectedItems([]);

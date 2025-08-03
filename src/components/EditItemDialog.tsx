@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { InventoryItem, useInventoryStore } from "@/store/inventoryStore";
+import { InventoryItem } from "@/store/inventoryStore";
+import { useUserInventory } from "@/hooks/useUserInventory";
 import { toast } from "@/hooks/use-toast";
 
 interface EditItemDialogProps {
@@ -16,7 +17,7 @@ interface EditItemDialogProps {
 }
 
 const EditItemDialog = ({ item, open, onOpenChange }: EditItemDialogProps) => {
-  const { updateItem, categories, addCategory } = useInventoryStore();
+  const { updateItem, categories, addCategory } = useUserInventory();
   const [formData, setFormData] = useState({
     name: "",
     description: "",

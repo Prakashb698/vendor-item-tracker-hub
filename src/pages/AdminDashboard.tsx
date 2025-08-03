@@ -2,14 +2,14 @@
 import { Users, Package, BarChart3, Settings, Shield, Activity, TrendingUp, PieChart as LucidePieChart, ShoppingCart, Wallet, AlertTriangle, DollarSign } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
-import { useInventoryStore } from "@/store/inventoryStore";
+import { useUserInventory } from "@/hooks/useUserInventory";
 import { usePurchaseQueueStore } from "@/store/purchaseQueueStore";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarChart, Bar, PieChart, Cell, Pie } from "recharts";
 
 const AdminDashboard = () => {
   const { user, profile } = useAuth();
-  const { items } = useInventoryStore();
+  const { items } = useUserInventory();
   const { totalItems: queueItems, totalValue: queueValue } = usePurchaseQueueStore();
 
   const lowStockItems = items.filter(item => item.quantity <= item.lowStockThreshold).length;

@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Edit, Trash2, Package, AlertTriangle, MapPin, ShoppingCart as ShoppingCartIcon, Truck, BarChart3 } from "lucide-react";
-import { InventoryItem, useInventoryStore } from "@/store/inventoryStore";
+import { InventoryItem } from "@/store/inventoryStore";
+import { useUserInventory } from "@/hooks/useUserInventory";
 import { usePurchaseQueueStore } from "@/store/purchaseQueueStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState } from "react";
@@ -23,7 +24,7 @@ interface InventoryItemCardProps {
 const InventoryItemCard = ({ item, isMultiSelectMode = false, isSelected = false, onSelect }: InventoryItemCardProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { deleteItem } = useInventoryStore();
+  const { deleteItem } = useUserInventory();
   const { addItem } = usePurchaseQueueStore();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);

@@ -5,11 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, FolderOpen, Trash2 } from "lucide-react";
-import { useInventoryStore } from "@/store/inventoryStore";
+import { useUserInventory } from "@/hooks/useUserInventory";
 import { toast } from "@/hooks/use-toast";
 
 const Categories = () => {
-  const { categories, items, addCategory, deleteCategory } = useInventoryStore();
+  const { categories, items, addCategory, deleteCategory } = useUserInventory();
   const [newCategory, setNewCategory] = useState("");
 
   const handleAddCategory = (e: React.FormEvent) => {

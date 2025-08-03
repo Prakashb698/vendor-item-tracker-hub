@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Wifi, WifiOff, RefreshCw } from 'lucide-react';
-import { useInventoryStore } from '@/store/inventoryStore';
+import { useUserInventory } from '@/hooks/useUserInventory';
 import { syncManager } from '@/lib/syncManager';
 
 export const ConnectionStatus = () => {
-  const { isOnline, syncInProgress, setOnlineStatus, setSyncStatus } = useInventoryStore();
+  const { isOnline, syncInProgress, setOnlineStatus, setSyncStatus } = useUserInventory();
   const [pendingChanges, setPendingChanges] = useState(0);
 
   useEffect(() => {

@@ -7,11 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { FileText, Download, TrendingUp, TrendingDown, Package, AlertTriangle, Calendar, DollarSign, BarChart3 } from "lucide-react";
-import { useInventoryStore } from "@/store/inventoryStore";
+import { useUserInventory } from "@/hooks/useUserInventory";
 import { toast } from "@/hooks/use-toast";
 
 const Reports = () => {
-  const { items } = useInventoryStore();
+  const { items } = useUserInventory();
   const [selectedPeriod, setSelectedPeriod] = useState("monthly");
   const [selectedYear, setSelectedYear] = useState("2024");
   const [reportGenerated, setReportGenerated] = useState(false);
@@ -54,7 +54,7 @@ const Reports = () => {
   const previousData = reportData[reportData.length - 2];
 
   // Category breakdown
-  const categoryData = items.reduce((acc, item) => {
+  const categoryData: Record<string, number> = items.reduce((acc, item) => {
     acc[item.category] = (acc[item.category] || 0) + item.quantity;
     return acc;
   }, {} as Record<string, number>);
@@ -292,12 +292,12 @@ const Reports = () => {
                 <CardContent>
                   <div className="space-y-3">
                     {Object.entries(categoryData)
-                      .sort(([, a], [, b]) => b - a)
+                      .sort(([, a], [, b]) => (b as number) - (a as number))
                       .slice(0, 5)
                       .map(([category, quantity]) => (
                         <div key={category} className="flex justify-between items-center">
                           <span className="text-sm font-medium">{category}</span>
-                          <Badge variant="outline">{quantity} items</Badge>
+                          <Badge variant="outline">{quantity as number} items</Badge>
                         </div>
                       ))}
                   </div>
@@ -383,10 +383,10 @@ const Reports = () => {
                     const lowStockInCategory = categoryItems.filter(item => item.quantity <= item.lowStockThreshold).length;
                     
                     return (
-                      <div key={category} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-semibold">{category}</h4>
-                          <Badge variant="outline">{quantity} items</Badge>
+                        <div key={category} className="p-4 border rounded-lg">
+                          <div className="flex justify-between items-start mb-2">
+                            <h4 className="font-semibold">{category}</h4>
+                            <Badge variant="outline">{quantity as number} items</Badge>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                           <div>Total Value: ${categoryValue.toFixed(2)}</div>
