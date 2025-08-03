@@ -44,6 +44,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setUser(mockUser);
       localStorage.setItem('user', JSON.stringify(mockUser));
+      // Clear any existing inventory data from previous sessions
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('inventory-storage')) {
+          localStorage.removeItem(key);
+        }
+      });
     } finally {
       setLoading(false);
     }
@@ -64,6 +70,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
       setUser(newUser);
       localStorage.setItem('user', JSON.stringify(newUser));
+      // Clear any existing inventory data for fresh start
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('inventory-storage')) {
+          localStorage.removeItem(key);
+        }
+      });
     } finally {
       setLoading(false);
     }
@@ -72,6 +84,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const signOut = () => {
     setUser(null);
     localStorage.removeItem('user');
+    // Clear all inventory-related localStorage keys
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith('inventory-storage')) {
+        localStorage.removeItem(key);
+      }
+    });
   };
 
   const value: AuthContextType = {

@@ -32,6 +32,7 @@ interface InventoryStore {
   loadOfflineData: () => Promise<void>;
   setOnlineStatus: (status: boolean) => void;
   setSyncStatus: (status: boolean) => void;
+  clearUserData: () => void;
 }
 
 export const useInventoryStore = create<InventoryStore>()(
@@ -125,10 +126,17 @@ export const useInventoryStore = create<InventoryStore>()(
 
       setOnlineStatus: (status) => set({ isOnline: status }),
       setSyncStatus: (status) => set({ syncInProgress: status }),
+      
+      clearUserData: () => set({
+        items: [],
+        categories: [],
+        isOnline: navigator.onLine,
+        syncInProgress: false,
+      }),
     }),
     {
       name: 'inventory-storage',
-      version: 1, // Increment version to clear old data
+      version: 2, // Increment version to clear old data
     }
   )
 );
