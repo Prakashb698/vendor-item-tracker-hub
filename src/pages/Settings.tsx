@@ -15,11 +15,11 @@ import { Link } from "react-router-dom";
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [profileData, setProfileData] = useState({
-    name: user?.name || "",
+    name: profile?.display_name || user?.email?.split('@')[0] || "",
     email: user?.email || "",
-    businessName: user?.businessName || "",
+    businessName: profile?.business_name || "",
     phone: "",
     address: "",
   });
@@ -315,7 +315,7 @@ const Settings = () => {
                   <div className="space-y-1 text-sm text-gray-600">
                     <p><strong>{t('settings.role')}:</strong> {user?.role === 'admin' ? t('settings.administrator') : t('settings.customer')}</p>
                     <p><strong>{t('settings.email')}:</strong> {user?.email}</p>
-                    <p><strong>{t('settings.memberSince')}:</strong> {new Date(user?.createdAt || '').toLocaleDateString()}</p>
+                    <p><strong>{t('settings.memberSince')}:</strong> {new Date(user?.created_at || '').toLocaleDateString()}</p>
                   </div>
                 </div>
                 

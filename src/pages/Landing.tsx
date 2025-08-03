@@ -23,7 +23,7 @@ const Landing = () => {
     e.preventDefault();
     try {
       if (isSignUp) {
-        await signUp(formData.email, formData.password, formData.businessName, formData.role);
+        await signUp(formData.email, formData.password, formData.businessName);
       } else {
         await signIn(formData.email, formData.password);
       }

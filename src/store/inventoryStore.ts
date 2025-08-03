@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { offlineStorage } from '@/lib/offlineStorage';
-import { syncManager } from '@/lib/syncManager';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface InventoryItem {
   id: string;
@@ -29,7 +28,7 @@ interface InventoryStore {
   deleteItem: (id: string) => void;
   addCategory: (category: string) => void;
   deleteCategory: (category: string) => void;
-  loadOfflineData: () => Promise<void>;
+  loadUserData: () => Promise<void>;
   setOnlineStatus: (status: boolean) => void;
   setSyncStatus: (status: boolean) => void;
   clearUserData: () => void;
@@ -43,61 +42,75 @@ export const useInventoryStore = create<InventoryStore>()(
       isOnline: navigator.onLine,
       syncInProgress: false,
       
-      addItem: (itemData) => set((state) => {
-        const uniqueId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      addItem: async (itemData) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+
         const newItem = {
+          ...itemData,
+          user_id: user.id,
+        };
+
+        const { error } = await supabase
+          .from('inventory_items')
+          .insert(newItem);
+
+        if (error) throw error;
+
+        // Update local state - data will be synced via real-time subscriptions
+        const uniqueId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const localItem = {
           ...itemData,
           id: uniqueId,
           createdAt: new Date(),
           updatedAt: new Date(),
         };
 
-        // Queue for sync if offline or online
-        syncManager.queueChange({
-          type: 'create',
-          table: 'inventory_items',
-          data: newItem
-        });
-
-        return {
-          items: [...state.items, newItem],
-        };
-      }),
+        set((state) => ({
+          items: [...state.items, localItem],
+        }));
+      },
       
-      updateItem: (id, updates) => set((state) => {
-        const updatedItems = state.items.map((item) =>
-          item.id === id
-            ? { ...item, ...updates, updatedAt: new Date() }
-            : item
-        );
+      updateItem: async (id, updates) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
 
-        // Queue for sync if offline or online
-        const updatedItem = updatedItems.find(item => item.id === id);
-        if (updatedItem) {
-          syncManager.queueChange({
-            type: 'update',
-            table: 'inventory_items',
-            data: updates,
-            itemId: id
-          });
-        }
+        const { error } = await supabase
+          .from('inventory_items')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', id)
+          .eq('user_id', user.id);
 
-        return { items: updatedItems };
-      }),
+        if (error) throw error;
+
+        set((state) => ({
+          items: state.items.map((item) =>
+            item.id === id
+              ? { ...item, ...updates, updatedAt: new Date() }
+              : item
+          ),
+        }));
+      },
       
-      deleteItem: (id) => set((state) => {
-        // Queue for sync if offline or online
-        syncManager.queueChange({
-          type: 'delete',
-          table: 'inventory_items',
-          data: {},
-          itemId: id
-        });
+      deleteItem: async (id) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
 
-        return {
+        const { error } = await supabase
+          .from('inventory_items')
+          .delete()
+          .eq('id', id)
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        set((state) => ({
           items: state.items.filter((item) => item.id !== id),
-        };
-      }),
+        }));
+      },
       
       addCategory: (category) => set((state) => ({
         categories: state.categories.includes(category)
@@ -114,13 +127,46 @@ export const useInventoryStore = create<InventoryStore>()(
         ),
       })),
 
-      loadOfflineData: async () => {
+      loadUserData: async () => {
         try {
-          await offlineStorage.init();
-          // In a real app, you'd load from IndexedDB here
-          // For now, we'll keep the existing data structure
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) return;
+
+          // Load inventory items
+          const { data: items, error: itemsError } = await supabase
+            .from('inventory_items')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+          if (itemsError) throw itemsError;
+
+          // Convert database format to store format
+          const formattedItems = items?.map(item => ({
+            id: item.id,
+            name: item.name,
+            description: item.description || '',
+            category: item.category,
+            quantity: item.quantity,
+            price: parseFloat(item.price.toString()),
+            lowStockThreshold: item.low_stock_threshold,
+            sku: item.sku,
+            location: item.location || '',
+            vendor: item.vendor || '',
+            barcode: item.barcode || '',
+            createdAt: new Date(item.created_at),
+            updatedAt: new Date(item.updated_at),
+          })) || [];
+
+          // Extract unique categories
+          const uniqueCategories = [...new Set(formattedItems.map(item => item.category))];
+
+          set({
+            items: formattedItems,
+            categories: uniqueCategories,
+          });
         } catch (error) {
-          console.error('Failed to load offline data:', error);
+          console.error('Failed to load user data:', error);
         }
       },
 
@@ -136,7 +182,7 @@ export const useInventoryStore = create<InventoryStore>()(
     }),
     {
       name: 'inventory-storage',
-      version: 2, // Increment version to clear old data
+      version: 3, // Clear old localStorage data
     }
   )
 );

@@ -12,7 +12,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, BarC
 import { useRef } from 'react';
 
 const CustomerPortal = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { items } = useInventoryStore();
   const { totalItems, totalValue } = usePurchaseQueueStore();
   const navigate = useNavigate();
@@ -126,8 +126,8 @@ const CustomerPortal = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Customer Portal</h1>
-          <p className="text-gray-600">Welcome back, {user?.name}</p>
-          <p className="text-sm text-gray-500">{user?.businessName}</p>
+           <p className="text-gray-600">Welcome back, {profile?.display_name || user?.email?.split('@')[0] || 'User'}</p>
+           <p className="text-sm text-gray-500">{profile?.business_name || 'My Business'}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button 

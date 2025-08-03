@@ -14,6 +14,7 @@ import Categories from "./pages/Categories";
 import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 import Landing from "./pages/Landing";
+import Auth from "./pages/Auth";
 import Pricing from "./pages/Pricing";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
@@ -32,7 +33,7 @@ const queryClient = new QueryClient();
 offlineStorage.init().catch(console.error);
 
 const AppContent = () => {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, profile, isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
@@ -43,7 +44,14 @@ const AppContent = () => {
   }
 
   if (!isAuthenticated) {
-    return <Landing />;
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/auth" element={<Auth />} />
+          <Route path="*" element={<Landing />} />
+        </Routes>
+      </BrowserRouter>
+    );
   }
 
   return (
@@ -52,64 +60,12 @@ const AppContent = () => {
         <div className="min-h-screen flex w-full">
           <Layout>
             <Routes>
-              {/* Admin Routes */}
-              {user?.role === 'admin' && (
-                <>
-                  <Route path="/" element={
-                    <ProtectedRoute requiredRole="admin">
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/dashboard" element={
-                    <ProtectedRoute requiredRole="admin">
-                      <AdminDashboard />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/inventory" element={
-                    <ProtectedRoute requiredRole="admin">
-                      <Inventory />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/categories" element={
-                    <ProtectedRoute requiredRole="admin">
-                      <Categories />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/reports" element={
-                    <ProtectedRoute requiredRole="admin">
-                      <Reports />
-                    </ProtectedRoute>
-                  } />
-                </>
-              )}
-              
-              {/* Customer Routes */}
-              {user?.role === 'customer' && (
-                <>
-                  <Route path="/" element={
-                    <ProtectedRoute requiredRole="customer">
-                      <CustomerPortal />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/dashboard" element={
-                    <ProtectedRoute requiredRole="customer">
-                      <CustomerPortal />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/inventory" element={
-                    <ProtectedRoute requiredRole="customer">
-                      <Inventory />
-                    </ProtectedRoute>
-                  } />
-                  <Route path="/reports" element={
-                    <ProtectedRoute requiredRole="customer">
-                      <Reports />
-                    </ProtectedRoute>
-                  } />
-                </>
-              )}
-              
-              {/* Common Routes */}
+              {/* Default routes for all authenticated users */}
+              <Route path="/" element={<CustomerPortal />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/inventory" element={<Inventory />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/reports" element={<Reports />} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/notifications" element={<Notifications />} />

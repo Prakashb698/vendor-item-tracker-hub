@@ -16,7 +16,7 @@ interface LayoutProps {
 }
 
 const Layout = ({ children }: LayoutProps) => {
-  const { user, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { t } = useTranslation();
 
   return (
@@ -35,8 +35,10 @@ const Layout = ({ children }: LayoutProps) => {
             <ConnectionStatus />
             <NotificationBell />
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-              <p className="text-xs text-gray-500">{user?.businessName}</p>
+              <p className="text-sm font-medium text-gray-900">
+                {profile?.display_name || user?.email?.split('@')[0] || 'User'}
+              </p>
+              <p className="text-xs text-gray-500">{profile?.business_name || 'My Business'}</p>
             </div>
             <Button
               variant="outline"
