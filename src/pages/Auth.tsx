@@ -23,13 +23,25 @@ export default function Auth() {
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
     
     try {
       await signIn(email, password);
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in');
+      console.error('Sign in error:', err);
+      if (err.message?.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please check your credentials or sign up for a new account.');
+      } else {
+        setError(err.message || 'Failed to sign in. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -42,13 +54,35 @@ export default function Auth() {
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address (e.g., user@company.com)');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
     
     try {
       await signUp(email, password, businessName);
+      setError('');
+      // Show success message
+      setError('Account created successfully! Please check your email to verify your account before signing in.');
     } catch (err: any) {
-      setError(err.message || 'Failed to sign up');
+      console.error('Sign up error:', err);
+      if (err.message?.includes('email_address_invalid')) {
+        setError('Please enter a valid email address (e.g., user@company.com)');
+      } else if (err.message?.includes('password')) {
+        setError('Password must be at least 6 characters long and contain both letters and numbers');
+      } else {
+        setError(err.message || 'Failed to create account. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -103,7 +137,7 @@ export default function Auth() {
                   />
                 </div>
                 {error && (
-                  <Alert variant="destructive">
+                  <Alert variant={error.includes('successfully') ? 'default' : 'destructive'}>
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
@@ -160,7 +194,7 @@ export default function Auth() {
                   />
                 </div>
                 {error && (
-                  <Alert variant="destructive">
+                  <Alert variant={error.includes('successfully') ? 'default' : 'destructive'}>
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
