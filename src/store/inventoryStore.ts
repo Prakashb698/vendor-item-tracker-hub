@@ -43,21 +43,7 @@ export const useInventoryStore = create<InventoryStore>()(
       syncInProgress: false,
       
       addItem: async (itemData) => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Not authenticated');
-
-        const newItem = {
-          ...itemData,
-          user_id: user.id,
-        };
-
-        const { error } = await supabase
-          .from('inventory_items')
-          .insert(newItem);
-
-        if (error) throw error;
-
-        // Update local state - data will be synced via real-time subscriptions
+        // For mock authentication, skip Supabase calls
         const uniqueId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
         const localItem = {
           ...itemData,
@@ -72,20 +58,7 @@ export const useInventoryStore = create<InventoryStore>()(
       },
       
       updateItem: async (id, updates) => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Not authenticated');
-
-        const { error } = await supabase
-          .from('inventory_items')
-          .update({
-            ...updates,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', id)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-
+        // For mock authentication, skip Supabase calls
         set((state) => ({
           items: state.items.map((item) =>
             item.id === id
@@ -96,17 +69,7 @@ export const useInventoryStore = create<InventoryStore>()(
       },
       
       deleteItem: async (id) => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) throw new Error('Not authenticated');
-
-        const { error } = await supabase
-          .from('inventory_items')
-          .delete()
-          .eq('id', id)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-
+        // For mock authentication, skip Supabase calls
         set((state) => ({
           items: state.items.filter((item) => item.id !== id),
         }));
@@ -128,46 +91,8 @@ export const useInventoryStore = create<InventoryStore>()(
       })),
 
       loadUserData: async () => {
-        try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) return;
-
-          // Load inventory items
-          const { data: items, error: itemsError } = await supabase
-            .from('inventory_items')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
-
-          if (itemsError) throw itemsError;
-
-          // Convert database format to store format
-          const formattedItems = items?.map(item => ({
-            id: item.id,
-            name: item.name,
-            description: item.description || '',
-            category: item.category,
-            quantity: item.quantity,
-            price: parseFloat(item.price.toString()),
-            lowStockThreshold: item.low_stock_threshold,
-            sku: item.sku,
-            location: item.location || '',
-            vendor: item.vendor || '',
-            barcode: item.barcode || '',
-            createdAt: new Date(item.created_at),
-            updatedAt: new Date(item.updated_at),
-          })) || [];
-
-          // Extract unique categories
-          const uniqueCategories = [...new Set(formattedItems.map(item => item.category))];
-
-          set({
-            items: formattedItems,
-            categories: uniqueCategories,
-          });
-        } catch (error) {
-          console.error('Failed to load user data:', error);
-        }
+        // For mock authentication, no need to load from Supabase
+        // Data is already persisted locally via Zustand persist
       },
 
       setOnlineStatus: (status) => set({ isOnline: status }),
