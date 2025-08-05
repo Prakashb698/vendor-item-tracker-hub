@@ -8,8 +8,7 @@ import InventoryHeader from "@/components/inventory/InventoryHeader";
 import MultiSelectActions from "@/components/inventory/MultiSelectActions";
 import InventoryFilters from "@/components/inventory/InventoryFilters";
 import InventoryGrid from "@/components/inventory/InventoryGrid";
-import { LocationSidebar } from "@/components/LocationSidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { LocationSelector } from "@/components/LocationSelector";
 import { useZebraScanner } from "@/hooks/useZebraScanner";
 import { useTranslation } from "react-i18next";
 import { useTranslatedInventory } from "@/hooks/useTranslatedInventory";
@@ -124,91 +123,88 @@ const Inventory = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <LocationSidebar
-          selectedLocationId={selectedLocationId}
-          onLocationChange={setSelectedLocationId}
+    <div className="space-y-6">
+      <InventoryHeader
+        isMultiSelectMode={isMultiSelectMode}
+        showScanner={showScanner}
+        onToggleMultiSelect={toggleMultiSelectMode}
+        onToggleScanner={() => setShowScanner(!showScanner)}
+        onOpenImportDialog={() => setIsImportDialogOpen(true)}
+        onOpenAddDialog={() => setIsAddDialogOpen(true)}
+      />
+
+      <MultiSelectActions
+        isMultiSelectMode={isMultiSelectMode}
+        selectedItems={selectedItems}
+        filteredItems={filteredItems}
+        onSelectAll={handleSelectAll}
+        onDeleteSelected={handleDeleteSelected}
+      />
+
+      {showScanner && (
+        <BarcodeScanner
+          onScan={getCurrentScanHandler()}
+          isActive={isScannerActive}
+          isConnected={isConnected}
+          connectionStatus={connectionStatus}
+          onToggle={toggleScanner}
+          onConnect={connectScanner}
+          onDisconnect={disconnectScanner}
         />
+      )}
 
-        <main className="flex-1">
-          <div className="flex items-center gap-2 p-4 border-b">
-            <SidebarTrigger />
-            <h1 className="text-lg font-semibold">Inventory Management</h1>
-            {selectedLocationId && locations.length > 0 && (
-              <div className="text-sm text-muted-foreground ml-auto">
-                {locationFilteredItems.length} items in selected location
-              </div>
-            )}
+      <InventoryFilters
+        items={locationFilteredItems}
+        onFilteredItemsChange={setFilteredItems}
+      />
+
+      <InventoryGrid
+        filteredItems={filteredItems}
+        isMultiSelectMode={isMultiSelectMode}
+        selectedItems={selectedItems}
+        onSelectItem={handleSelectItem}
+        onOpenImportDialog={() => setIsImportDialogOpen(true)}
+        onOpenAddDialog={() => setIsAddDialogOpen(true)}
+      />
+
+      {/* Location Selector at the bottom */}
+      <div className="mt-8 p-4 border-t bg-muted/20 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="text-sm font-medium text-muted-foreground">
+            Filter by Location:
           </div>
-
-          <div className="p-6 space-y-6">
-            <InventoryHeader
-              isMultiSelectMode={isMultiSelectMode}
-              showScanner={showScanner}
-              onToggleMultiSelect={toggleMultiSelectMode}
-              onToggleScanner={() => setShowScanner(!showScanner)}
-              onOpenImportDialog={() => setIsImportDialogOpen(true)}
-              onOpenAddDialog={() => setIsAddDialogOpen(true)}
-            />
-
-            <MultiSelectActions
-              isMultiSelectMode={isMultiSelectMode}
-              selectedItems={selectedItems}
-              filteredItems={filteredItems}
-              onSelectAll={handleSelectAll}
-              onDeleteSelected={handleDeleteSelected}
-            />
-
-            {showScanner && (
-              <BarcodeScanner
-                onScan={getCurrentScanHandler()}
-                isActive={isScannerActive}
-                isConnected={isConnected}
-                connectionStatus={connectionStatus}
-                onToggle={toggleScanner}
-                onConnect={connectScanner}
-                onDisconnect={disconnectScanner}
-              />
-            )}
-
-            <InventoryFilters
-              items={locationFilteredItems}
-              onFilteredItemsChange={setFilteredItems}
-            />
-
-            <InventoryGrid
-              filteredItems={filteredItems}
-              isMultiSelectMode={isMultiSelectMode}
-              selectedItems={selectedItems}
-              onSelectItem={handleSelectItem}
-              onOpenImportDialog={() => setIsImportDialogOpen(true)}
-              onOpenAddDialog={() => setIsAddDialogOpen(true)}
-            />
-
-            <AddItemDialog 
-              open={isAddDialogOpen} 
-              onOpenChange={(open) => {
-                setIsAddDialogOpen(open);
-                if (!open) {
-                  setScannedBarcodeForAdd("");
-                }
-              }}
-              scannedBarcode={scannedBarcodeForAdd}
-            />
-            
-            <ImportItemsDialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen} />
-            
-            <ScanResultDialog
-              open={scanResultDialogOpen}
-              onOpenChange={setScanResultDialogOpen}
-              item={scannedItem}
-              scannedBarcode={lastScannedBarcode}
-            />
+          <LocationSelector
+            selectedLocationId={selectedLocationId}
+            onLocationChange={setSelectedLocationId}
+          />
+        </div>
+        {selectedLocationId && locations.length > 0 && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            Showing {locationFilteredItems.length} items in selected location
           </div>
-        </main>
+        )}
       </div>
-    </SidebarProvider>
+
+      <AddItemDialog 
+        open={isAddDialogOpen} 
+        onOpenChange={(open) => {
+          setIsAddDialogOpen(open);
+          if (!open) {
+            setScannedBarcodeForAdd("");
+          }
+        }}
+        scannedBarcode={scannedBarcodeForAdd}
+      />
+      
+      <ImportItemsDialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen} />
+      
+      <ScanResultDialog
+        open={scanResultDialogOpen}
+        onOpenChange={setScanResultDialogOpen}
+        item={scannedItem}
+        scannedBarcode={lastScannedBarcode}
+      />
+    </div>
   );
 };
 
