@@ -8,15 +8,18 @@ import InventoryHeader from "@/components/inventory/InventoryHeader";
 import MultiSelectActions from "@/components/inventory/MultiSelectActions";
 import InventoryFilters from "@/components/inventory/InventoryFilters";
 import InventoryGrid from "@/components/inventory/InventoryGrid";
+import { LocationSelector } from "@/components/LocationSelector";
 import { useZebraScanner } from "@/hooks/useZebraScanner";
 import { useTranslation } from "react-i18next";
 import { useTranslatedInventory } from "@/hooks/useTranslatedInventory";
 import { InventoryItem } from "@/store/inventoryStore";
+import { useLocations } from "@/hooks/useLocations";
 
 const Inventory = () => {
   const { t } = useTranslation();
   const { items } = useUserInventory();
   const { translateItems } = useTranslatedInventory();
+  const { locations } = useLocations();
   const [filteredItems, setFilteredItems] = useState<InventoryItem[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
@@ -24,6 +27,7 @@ const Inventory = () => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [scannedBarcodeForAdd, setScannedBarcodeForAdd] = useState<string>("");
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("");
   
   // Scan result dialog state
   const [scanResultDialogOpen, setScanResultDialogOpen] = useState(false);
@@ -40,8 +44,11 @@ const Inventory = () => {
     handleBarcodeScan 
   } = useZebraScanner();
 
-  // Get translated items
+  // Get translated items and filter by location if selected
   const translatedItems = translateItems(items);
+  const locationFilteredItems = selectedLocationId 
+    ? translatedItems.filter(item => item.location_id === selectedLocationId)
+    : translatedItems;
 
   // Handler specifically for adding new items - only sets barcode and opens dialog
   const handleBarcodeForAddItem = (barcode: string) => {
@@ -126,6 +133,21 @@ const Inventory = () => {
         onOpenAddDialog={() => setIsAddDialogOpen(true)}
       />
 
+      {/* Location Selector */}
+      {locations.length > 0 && (
+        <div className="flex justify-between items-center">
+          <LocationSelector
+            selectedLocationId={selectedLocationId}
+            onLocationChange={setSelectedLocationId}
+          />
+          {selectedLocationId && (
+            <div className="text-sm text-muted-foreground">
+              Showing {locationFilteredItems.length} items in selected location
+            </div>
+          )}
+        </div>
+      )}
+
       <MultiSelectActions
         isMultiSelectMode={isMultiSelectMode}
         selectedItems={selectedItems}
@@ -147,7 +169,7 @@ const Inventory = () => {
       )}
 
       <InventoryFilters
-        items={translatedItems}
+        items={locationFilteredItems}
         onFilteredItemsChange={setFilteredItems}
       />
 

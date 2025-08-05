@@ -14,6 +14,7 @@ export interface InventoryItem {
   location: string;
   vendor: string;
   barcode: string;
+  location_id?: string; // New field for location tracking
   createdAt: Date;
   updatedAt: Date;
 }

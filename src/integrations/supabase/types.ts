@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_locations: {
+        Row: {
+          address: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       inventory_categories: {
         Row: {
           created_at: string
@@ -44,6 +77,7 @@ export type Database = {
           description: string | null
           id: string
           location: string | null
+          location_id: string | null
           low_stock_threshold: number
           name: string
           price: number
@@ -61,6 +95,7 @@ export type Database = {
           description?: string | null
           id?: string
           location?: string | null
+          location_id?: string | null
           low_stock_threshold?: number
           name: string
           price: number
@@ -78,6 +113,7 @@ export type Database = {
           description?: string | null
           id?: string
           location?: string | null
+          location_id?: string | null
           low_stock_threshold?: number
           name?: string
           price?: number
@@ -87,7 +123,66 @@ export type Database = {
           user_id?: string
           vendor?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "business_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inventory_transfers: {
+        Row: {
+          created_at: string
+          from_location_id: string | null
+          id: string
+          item_id: string
+          quantity: number
+          reason: string | null
+          to_location_id: string
+          transferred_by: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_location_id?: string | null
+          id?: string
+          item_id: string
+          quantity: number
+          reason?: string | null
+          to_location_id: string
+          transferred_by?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_location_id?: string | null
+          id?: string
+          item_id?: string
+          quantity?: number
+          reason?: string | null
+          to_location_id?: string
+          transferred_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_transfers_from_location_id_fkey"
+            columns: ["from_location_id"]
+            isOneToOne: false
+            referencedRelation: "business_locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inventory_transfers_to_location_id_fkey"
+            columns: ["to_location_id"]
+            isOneToOne: false
+            referencedRelation: "business_locations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
