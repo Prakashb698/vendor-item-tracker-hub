@@ -23,38 +23,44 @@ export const LocationSelector = ({ selectedLocationId, onLocationChange, showMan
     <div className="flex items-center gap-2">
       <MapPin className="h-4 w-4 text-muted-foreground" />
       
-      <Select
-        value={selectedLocationId || defaultLocation?.id || ''}
-        onValueChange={onLocationChange}
-        disabled={loading}
-      >
-        <SelectTrigger className="w-48">
-          <SelectValue placeholder="Select location">
-            {selectedLocation ? (
-              <div className="flex items-center gap-2">
-                <span>{selectedLocation.name}</span>
-                {selectedLocation.is_default && (
-                  <Badge variant="secondary" className="text-xs">Default</Badge>
-                )}
-              </div>
-            ) : (
-              'Select location'
-            )}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {locations.map((location) => (
-            <SelectItem key={location.id} value={location.id}>
-              <div className="flex items-center gap-2">
-                <span>{location.name}</span>
-                {location.is_default && (
-                  <Badge variant="secondary" className="text-xs">Default</Badge>
-                )}
-              </div>
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      {locations.length > 0 ? (
+        <Select
+          value={selectedLocationId || defaultLocation?.id || ''}
+          onValueChange={onLocationChange}
+          disabled={loading}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Select location">
+              {selectedLocation ? (
+                <div className="flex items-center gap-2">
+                  <span>{selectedLocation.name}</span>
+                  {selectedLocation.is_default && (
+                    <Badge variant="secondary" className="text-xs">Default</Badge>
+                  )}
+                </div>
+              ) : (
+                'Select location'
+              )}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {locations.map((location) => (
+              <SelectItem key={location.id} value={location.id}>
+                <div className="flex items-center gap-2">
+                  <span>{location.name}</span>
+                  {location.is_default && (
+                    <Badge variant="secondary" className="text-xs">Default</Badge>
+                  )}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : (
+        <div className="text-sm text-muted-foreground">
+          No locations yet - click Manage to add your first location
+        </div>
+      )}
 
       {showManagement && (
         <Button

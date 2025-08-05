@@ -133,20 +133,18 @@ const Inventory = () => {
         onOpenAddDialog={() => setIsAddDialogOpen(true)}
       />
 
-      {/* Location Selector */}
-      {locations.length > 0 && (
-        <div className="flex justify-between items-center">
-          <LocationSelector
-            selectedLocationId={selectedLocationId}
-            onLocationChange={setSelectedLocationId}
-          />
-          {selectedLocationId && (
-            <div className="text-sm text-muted-foreground">
-              Showing {locationFilteredItems.length} items in selected location
-            </div>
-          )}
-        </div>
-      )}
+      {/* Location Selector - Always show so users can add their first location */}
+      <div className="flex justify-between items-center">
+        <LocationSelector
+          selectedLocationId={selectedLocationId}
+          onLocationChange={setSelectedLocationId}
+        />
+        {selectedLocationId && locations.length > 0 && (
+          <div className="text-sm text-muted-foreground">
+            Showing {locationFilteredItems.length} items in selected location
+          </div>
+        )}
+      </div>
 
       <MultiSelectActions
         isMultiSelectMode={isMultiSelectMode}
