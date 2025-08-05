@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface AuthContextType {
   user: any;
@@ -27,8 +27,31 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<any[]>([]); // Store registered users in memory
+  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState<any[]>([]);
+
+  // Load persisted data on mount
+  useEffect(() => {
+    const savedUsers = localStorage.getItem('mock_auth_users');
+    const savedUser = localStorage.getItem('mock_auth_current_user');
+    
+    if (savedUsers) {
+      setUsers(JSON.parse(savedUsers));
+    }
+    
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+    
+    setLoading(false);
+  }, []);
+
+  // Save users to localStorage whenever users array changes
+  useEffect(() => {
+    if (users.length > 0) {
+      localStorage.setItem('mock_auth_users', JSON.stringify(users));
+    }
+  }, [users]);
 
   const signUp = async (email: string, password: string, businessName: string) => {
     setLoading(true);
@@ -63,12 +86,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
     
     setUser(foundUser);
+    localStorage.setItem('mock_auth_current_user', JSON.stringify(foundUser));
     setLoading(false);
     return foundUser;
   };
 
   const signOut = () => {
     setUser(null);
+    localStorage.removeItem('mock_auth_current_user');
   };
 
   return (
