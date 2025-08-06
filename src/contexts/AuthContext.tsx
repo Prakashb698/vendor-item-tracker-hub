@@ -36,11 +36,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const savedUser = localStorage.getItem('mock_auth_current_user');
     
     if (savedUsers) {
-      setUsers(JSON.parse(savedUsers));
+      const users = JSON.parse(savedUsers);
+      // Filter out users with invalid IDs (old timestamp format)
+      const validUsers = users.filter((user: any) => 
+        typeof user.id === 'string' && user.id.length > 20
+      );
+      setUsers(validUsers);
     }
     
     if (savedUser) {
-      setUser(JSON.parse(savedUser));
+      const currentUser = JSON.parse(savedUser);
+      // Only set user if ID is valid UUID format
+      if (typeof currentUser.id === 'string' && currentUser.id.length > 20) {
+        setUser(currentUser);
+      } else {
+        // Clear invalid user
+        localStorage.removeItem('mock_auth_current_user');
+      }
     }
     
     setLoading(false);
