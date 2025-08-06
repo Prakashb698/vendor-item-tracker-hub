@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
     
     // Create new user
-    const newUser = { email, password, businessName, id: Date.now() };
+    const newUser = { email, password, businessName, id: crypto.randomUUID() };
     setUsers(prev => [...prev, newUser]);
     setLoading(false);
     
