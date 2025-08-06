@@ -40,6 +40,7 @@ export const LocationManagementDialog = ({ open, onOpenChange }: LocationManagem
     description: '',
     is_default: false
   });
+  const [adding, setAdding] = useState(false);
   const [deleteLocationId, setDeleteLocationId] = useState<string | null>(null);
 
   const handleAddLocation = async () => {
@@ -51,20 +52,25 @@ export const LocationManagementDialog = ({ open, onOpenChange }: LocationManagem
       });
       return;
     }
-
+    setAdding(true);
     try {
-      await addLocation(newLocation);
-      setNewLocation({ name: '', address: '', description: '', is_default: false });
-      toast({
-        title: "Success",
-        description: "Location added successfully"
+      await addLocation({
+        name: newLocation.name.trim(),
+        address: newLocation.address.trim(),
+        description: newLocation.description.trim(),
+        is_default: newLocation.is_default,
       });
-    } catch (error) {
+      setNewLocation({ name: '', address: '', description: '', is_default: false });
+      toast({ title: "Success", description: "Location added successfully" });
+    } catch (error: any) {
+      console.error("addLocation failed:", error);
       toast({
         title: "Error",
-        description: "Failed to add location",
+        description: error?.message ?? "Failed to add location",
         variant: "destructive"
       });
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -72,14 +78,11 @@ export const LocationManagementDialog = ({ open, onOpenChange }: LocationManagem
     try {
       await deleteLocation(locationId);
       setDeleteLocationId(null);
-      toast({
-        title: "Success",
-        description: "Location deleted successfully"
-      });
-    } catch (error) {
+      toast({ title: "Success", description: "Location deleted successfully" });
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to delete location",
+        description: error?.message ?? "Failed to delete location",
         variant: "destructive"
       });
     }
@@ -88,14 +91,11 @@ export const LocationManagementDialog = ({ open, onOpenChange }: LocationManagem
   const handleSetDefault = async (locationId: string) => {
     try {
       await setDefaultLocation(locationId);
-      toast({
-        title: "Success",
-        description: "Default location updated"
-      });
-    } catch (error) {
+      toast({ title: "Success", description: "Default location updated" });
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to update default location",
+        description: error?.message ?? "Failed to update default location",
         variant: "destructive"
       });
     }
@@ -150,8 +150,8 @@ export const LocationManagementDialog = ({ open, onOpenChange }: LocationManagem
                     rows={3}
                   />
                 </div>
-                <Button onClick={handleAddLocation} className="w-full">
-                  Add Location
+                <Button onClick={handleAddLocation} className="w-full" disabled={adding}>
+                  {adding ? "Adding..." : "Add Location"}
                 </Button>
               </CardContent>
             </Card>
