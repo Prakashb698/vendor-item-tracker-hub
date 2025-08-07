@@ -18,17 +18,29 @@ const Landing = () => {
     businessName: "",
     role: "customer" as "admin" | "customer"
   });
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    
     try {
       if (isSignUp) {
+        if (formData.password !== formData.confirmPassword) {
+          setError("Passwords don't match");
+          return;
+        }
         await signUp(formData.email, formData.password, formData.businessName);
       } else {
         await signIn(formData.email, formData.password);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Authentication error:', error);
+      if (error.message === 'Invalid login credentials') {
+        setError("Invalid email or password. If you don't have an account yet, please sign up first.");
+      } else {
+        setError(error.message || 'Authentication failed. Please try again.');
+      }
     }
   };
 
@@ -208,6 +220,12 @@ const Landing = () => {
                         required={isSignUp}
                         className="h-11"
                       />
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                      <p className="text-sm text-red-600">{error}</p>
                     </div>
                   )}
 
