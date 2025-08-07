@@ -1,14 +1,16 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
-  user: any;
+  user: User | null;
+  session: Session | null;
   profile: any;
   isAuthenticated: boolean;
   loading: boolean;
   signUp: (email: string, password: string, businessName: string) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -26,96 +28,96 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<any[]>([]);
 
-  // Load persisted data on mount
   useEffect(() => {
-    // Clear all old localStorage data with invalid IDs
-    const savedUser = localStorage.getItem('mock_auth_current_user');
-    
-    if (savedUser) {
-      const currentUser = JSON.parse(savedUser);
-      // Check if user ID is the old timestamp format (number or short string)
-      if (typeof currentUser.id === 'number' || 
-          (typeof currentUser.id === 'string' && currentUser.id.length < 30)) {
-        // Clear all old data
-        localStorage.removeItem('mock_auth_current_user');
-        localStorage.removeItem('mock_auth_users');
-        console.log('Cleared old user data - please log in again');
-      } else {
-        setUser(currentUser);
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Fetch profile when user signs in
+        if (session?.user) {
+          setTimeout(async () => {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+            setProfile(profileData);
+          }, 0);
+        } else {
+          setProfile(null);
+        }
+        
+        setLoading(false);
       }
-    }
+    );
 
-    const savedUsers = localStorage.getItem('mock_auth_users');
-    if (savedUsers) {
-      const users = JSON.parse(savedUsers);
-      // Only keep users with proper UUID format
-      const validUsers = users.filter((user: any) => 
-        typeof user.id === 'string' && user.id.length >= 30 && user.id.includes('-')
-      );
-      setUsers(validUsers);
-    }
-    
-    setLoading(false);
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
-
-  // Save users to localStorage whenever users array changes
-  useEffect(() => {
-    if (users.length > 0) {
-      localStorage.setItem('mock_auth_users', JSON.stringify(users));
-    }
-  }, [users]);
 
   const signUp = async (email: string, password: string, businessName: string) => {
     setLoading(true);
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Check if user already exists
-    const existingUser = users.find(u => u.email === email);
-    if (existingUser) {
-      setLoading(false);
-      throw new Error('User with this email already exists');
-    }
+    const redirectUrl = `${window.location.origin}/`;
     
-    // Create new user
-    const newUser = { email, password, businessName, id: crypto.randomUUID() };
-    setUsers(prev => [...prev, newUser]);
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          business_name: businessName
+        }
+      }
+    });
+    
     setLoading(false);
     
-    return newUser;
+    if (error) throw error;
+    return data;
   };
 
   const signIn = async (email: string, password: string) => {
     setLoading(true);
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Find user
-    const foundUser = users.find(u => u.email === email && u.password === password);
-    if (!foundUser) {
-      setLoading(false);
-      throw new Error('Invalid login credentials');
-    }
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
     
-    setUser(foundUser);
-    localStorage.setItem('mock_auth_current_user', JSON.stringify(foundUser));
     setLoading(false);
-    return foundUser;
+    
+    if (error) throw error;
+    return data;
   };
 
-  const signOut = () => {
+  const signOut = async () => {
+    setLoading(true);
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('mock_auth_current_user');
+    setSession(null);
+    setProfile(null);
+    setLoading(false);
   };
 
   return (
     <AuthContext.Provider value={{ 
       user, 
-      profile: user ? { business_name: user.businessName } : null,
+      session,
+      profile,
       isAuthenticated: !!user,
       loading, 
       signUp, 
