@@ -36,8 +36,18 @@ const Landing = () => {
       }
     } catch (error: any) {
       console.error('Authentication error:', error);
-      if (error.message === 'Invalid login credentials') {
-        setError("Invalid email or password. If you don't have an account yet, please sign up first.");
+      
+      // Handle specific Supabase auth errors
+      if (error.code === 'email_address_invalid') {
+        setError("Please use a valid email address. Some email providers may not be accepted.");
+      } else if (error.code === 'weak_password') {
+        setError("Password must be at least 6 characters long.");
+      } else if (error.code === 'over_email_send_rate_limit') {
+        setError("Too many attempts. Please wait a moment before trying again.");
+      } else if (error.code === 'invalid_credentials') {
+        setError("Invalid email or password. For new accounts, please check your email for a confirmation link before signing in.");
+      } else if (error.message === 'Invalid login credentials') {
+        setError("Invalid email or password. If you just signed up, please check your email for a confirmation link first.");
       } else {
         setError(error.message || 'Authentication failed. Please try again.');
       }
