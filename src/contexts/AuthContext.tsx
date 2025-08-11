@@ -1,12 +1,11 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
-  profile: any;
   session: Session | null;
+  profile: any;
   isAuthenticated: boolean;
   loading: boolean;
   signUp: (email: string, password: string, businessName: string) => Promise<any>;
@@ -35,21 +34,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Fetch profile when user signs in
         if (session?.user) {
-          // Fetch user profile
           setTimeout(async () => {
-            const { data } = await supabase
+            const { data: profileData } = await supabase
               .from('profiles')
               .select('*')
               .eq('user_id', session.user.id)
               .single();
-            setProfile(data);
+            setProfile(profileData);
           }, 0);
         } else {
           setProfile(null);
@@ -59,7 +58,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     );
 
-    // Check for existing session
+    // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -70,6 +69,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const signUp = async (email: string, password: string, businessName: string) => {
+    setLoading(true);
+    
     const redirectUrl = `${window.location.origin}/`;
     
     const { data, error } = await supabase.auth.signUp({
@@ -82,31 +83,41 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         }
       }
     });
-
+    
+    setLoading(false);
+    
     if (error) throw error;
     return data;
   };
 
   const signIn = async (email: string, password: string) => {
+    setLoading(true);
+    
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     });
-
+    
+    setLoading(false);
+    
     if (error) throw error;
     return data;
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    setLoading(true);
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setProfile(null);
+    setLoading(false);
   };
 
   return (
     <AuthContext.Provider value={{ 
       user, 
-      profile,
       session,
+      profile,
       isAuthenticated: !!user,
       loading, 
       signUp, 
