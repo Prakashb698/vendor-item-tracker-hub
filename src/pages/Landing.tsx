@@ -18,17 +18,39 @@ const Landing = () => {
     businessName: "",
     role: "customer" as "admin" | "customer"
   });
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    
     try {
       if (isSignUp) {
+        if (formData.password !== formData.confirmPassword) {
+          setError("Passwords don't match");
+          return;
+        }
         await signUp(formData.email, formData.password, formData.businessName);
       } else {
         await signIn(formData.email, formData.password);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Authentication error:', error);
+      
+      // Handle specific Supabase auth errors
+      if (error.code === 'email_address_invalid') {
+        setError("Please use a valid email address. Some email providers may not be accepted.");
+      } else if (error.code === 'weak_password') {
+        setError("Password must be at least 6 characters long.");
+      } else if (error.code === 'over_email_send_rate_limit') {
+        setError("Too many attempts. Please wait a moment before trying again.");
+      } else if (error.code === 'invalid_credentials') {
+        setError("Invalid email or password. For new accounts, please check your email for a confirmation link before signing in.");
+      } else if (error.message === 'Invalid login credentials') {
+        setError("Invalid email or password. If you just signed up, please check your email for a confirmation link first.");
+      } else {
+        setError(error.message || 'Authentication failed. Please try again.');
+      }
     }
   };
 
@@ -208,6 +230,12 @@ const Landing = () => {
                         required={isSignUp}
                         className="h-11"
                       />
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                      <p className="text-sm text-red-600">{error}</p>
                     </div>
                   )}
 
