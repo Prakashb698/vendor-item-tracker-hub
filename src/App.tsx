@@ -47,8 +47,9 @@ const AppContent = () => {
     return (
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="*" element={<Landing />} />
+          <Route path="*" element={<Auth />} />
         </Routes>
       </BrowserRouter>
     );
