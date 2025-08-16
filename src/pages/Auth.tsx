@@ -10,23 +10,28 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
   const { signIn, signUp, loading } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [businessName, setBusinessName] = useState('');
+  
+  // Separate state for sign-in and sign-up forms
+  const [signInForm, setSignInForm] = useState({ email: '', password: '' });
+  const [signUpForm, setSignUpForm] = useState({ email: '', password: '', businessName: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState('signin');
 
-  const resetForm = () => {
-    setEmail('');
-    setPassword('');
-    setBusinessName('');
+  const resetMessages = () => {
     setError('');
     setSuccess('');
   };
 
+  const resetForms = () => {
+    setSignInForm({ email: '', password: '' });
+    setSignUpForm({ email: '', password: '', businessName: '' });
+    resetMessages();
+  };
+
   const handleSignIn = async () => {
-    if (!email || !password) {
+    if (!signInForm.email || !signInForm.password) {
       setError('Please fill in all fields');
       return;
     }
@@ -36,8 +41,9 @@ const Auth = () => {
     setSuccess('');
     
     try {
-      await signIn(email, password);
-      resetForm();
+      await signIn(signInForm.email, signInForm.password);
+      setSignInForm({ email: '', password: '' });
+      resetMessages();
     } catch (err: any) {
       console.error('Authentication error:', err);
       
@@ -54,12 +60,12 @@ const Auth = () => {
   };
 
   const handleSignUp = async () => {
-    if (!email || !password || !businessName) {
+    if (!signUpForm.email || !signUpForm.password || !signUpForm.businessName) {
       setError('Please fill in all fields');
       return;
     }
 
-    if (password.length < 6) {
+    if (signUpForm.password.length < 6) {
       setError('Password must be at least 6 characters long');
       return;
     }
@@ -69,9 +75,10 @@ const Auth = () => {
     setSuccess('');
     
     try {
-      await signUp(email, password, businessName);
+      await signUp(signUpForm.email, signUpForm.password, signUpForm.businessName);
       setSuccess('Account created successfully! Please check your email for a confirmation link before signing in.');
-      resetForm();
+      setSignUpForm({ email: '', password: '', businessName: '' });
+      resetMessages();
     } catch (err: any) {
       console.error('Authentication error:', err);
       
@@ -110,7 +117,10 @@ const Auth = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
+          <Tabs defaultValue="signin" className="w-full" onValueChange={(value) => {
+            setActiveTab(value);
+            resetMessages();
+          }}>
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="signin">Sign In</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
@@ -124,8 +134,8 @@ const Auth = () => {
                     id="signin-email"
                     type="email"
                     placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={signInForm.email}
+                    onChange={(e) => setSignInForm(prev => ({ ...prev, email: e.target.value }))}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -135,8 +145,8 @@ const Auth = () => {
                     id="signin-password"
                     type="password"
                     placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={signInForm.password}
+                    onChange={(e) => setSignInForm(prev => ({ ...prev, password: e.target.value }))}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -175,8 +185,8 @@ const Auth = () => {
                     id="signup-email"
                     type="email"
                     placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    value={signUpForm.email}
+                    onChange={(e) => setSignUpForm(prev => ({ ...prev, email: e.target.value }))}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -186,8 +196,8 @@ const Auth = () => {
                     id="signup-password"
                     type="password"
                     placeholder="Enter your password (min 6 characters)"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    value={signUpForm.password}
+                    onChange={(e) => setSignUpForm(prev => ({ ...prev, password: e.target.value }))}
                     disabled={isSubmitting}
                   />
                 </div>
@@ -197,8 +207,8 @@ const Auth = () => {
                     id="business-name"
                     type="text"
                     placeholder="Enter your business name"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
+                    value={signUpForm.businessName}
+                    onChange={(e) => setSignUpForm(prev => ({ ...prev, businessName: e.target.value }))}
                     disabled={isSubmitting}
                   />
                 </div>
