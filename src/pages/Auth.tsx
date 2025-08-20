@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, Package } from 'lucide-react';
+import { Loader2, Package, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
@@ -18,16 +19,23 @@ const Auth = () => {
   const [success, setSuccess] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
+  const [rateLimitInfo, setRateLimitInfo] = useState<{ isRateLimited: boolean; waitTime?: number }>({ isRateLimited: false });
 
   const resetMessages = () => {
     setError('');
     setSuccess('');
+    setRateLimitInfo({ isRateLimited: false });
   };
 
   const resetForms = () => {
     setSignInForm({ email: '', password: '' });
     setSignUpForm({ email: '', password: '', businessName: '' });
     resetMessages();
+  };
+
+  const extractWaitTime = (errorMessage: string): number | null => {
+    const match = errorMessage.match(/(\d+)\s*seconds?/i);
+    return match ? parseInt(match[1]) : null;
   };
 
   const handleSignIn = async () => {
@@ -39,6 +47,7 @@ const Auth = () => {
     setIsSubmitting(true);
     setError('');
     setSuccess('');
+    setRateLimitInfo({ isRateLimited: false });
     
     try {
       await signIn(signInForm.email, signInForm.password);
@@ -51,6 +60,10 @@ const Auth = () => {
         setError("Invalid email or password. If you just signed up, please check your email for a confirmation link first.");
       } else if (err.message === 'Invalid login credentials') {
         setError("Invalid email or password. If you just signed up, please check your email for a confirmation link first.");
+      } else if (err.code === 'over_email_send_rate_limit' || err.message?.includes('rate limit')) {
+        const waitTime = extractWaitTime(err.message) || 60;
+        setRateLimitInfo({ isRateLimited: true, waitTime });
+        setError(`Too many login attempts. Please wait ${waitTime} seconds before trying again.`);
       } else {
         setError(err.message || 'Failed to sign in. Please try again.');
       }
@@ -70,9 +83,17 @@ const Auth = () => {
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(signUpForm.email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     setIsSubmitting(true);
     setError('');
     setSuccess('');
+    setRateLimitInfo({ isRateLimited: false });
     
     try {
       await signUp(signUpForm.email, signUpForm.password, signUpForm.businessName);
@@ -83,11 +104,15 @@ const Auth = () => {
       console.error('Authentication error:', err);
       
       if (err.code === 'email_address_invalid') {
-        setError("Please use a valid email address. Some email providers may not be accepted.");
+        setError("Please use a different email address. Try using a common email provider like Gmail, Yahoo, or Outlook.");
       } else if (err.code === 'weak_password') {
         setError("Password must be at least 6 characters long.");
-      } else if (err.code === 'over_email_send_rate_limit') {
-        setError("Too many attempts. Please wait a moment before trying again.");
+      } else if (err.code === 'over_email_send_rate_limit' || err.message?.includes('rate limit') || err.message?.includes('56 seconds')) {
+        const waitTime = extractWaitTime(err.message) || 60;
+        setRateLimitInfo({ isRateLimited: true, waitTime });
+        setError(`Too many signup attempts. Please wait ${waitTime} seconds before trying again to avoid being blocked.`);
+      } else if (err.code === 'signup_disabled') {
+        setError("New signups are temporarily disabled. Please try again later.");
       } else {
         setError(err.message || 'Failed to create account. Please try again.');
       }
@@ -136,7 +161,7 @@ const Auth = () => {
                     placeholder="Enter your email"
                     value={signInForm.email}
                     onChange={(e) => setSignInForm(prev => ({ ...prev, email: e.target.value }))}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || rateLimitInfo.isRateLimited}
                   />
                 </div>
                 <div className="space-y-2">
@@ -147,11 +172,12 @@ const Auth = () => {
                     placeholder="Enter your password"
                     value={signInForm.password}
                     onChange={(e) => setSignInForm(prev => ({ ...prev, password: e.target.value }))}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || rateLimitInfo.isRateLimited}
                   />
                 </div>
                 {error && (
                   <Alert variant="destructive">
+                    {rateLimitInfo.isRateLimited && <Clock className="h-4 w-4" />}
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
@@ -163,12 +189,17 @@ const Auth = () => {
                 <Button 
                   onClick={handleSignIn} 
                   className="w-full" 
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || rateLimitInfo.isRateLimited}
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Signing in...
+                    </>
+                  ) : rateLimitInfo.isRateLimited ? (
+                    <>
+                      <Clock className="mr-2 h-4 w-4" />
+                      Please wait...
                     </>
                   ) : (
                     'Sign In'
@@ -184,10 +215,10 @@ const Auth = () => {
                   <Input
                     id="signup-email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="Enter your email (use Gmail, Yahoo, etc.)"
                     value={signUpForm.email}
                     onChange={(e) => setSignUpForm(prev => ({ ...prev, email: e.target.value }))}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || rateLimitInfo.isRateLimited}
                   />
                 </div>
                 <div className="space-y-2">
@@ -198,7 +229,7 @@ const Auth = () => {
                     placeholder="Enter your password (min 6 characters)"
                     value={signUpForm.password}
                     onChange={(e) => setSignUpForm(prev => ({ ...prev, password: e.target.value }))}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || rateLimitInfo.isRateLimited}
                   />
                 </div>
                 <div className="space-y-2">
@@ -209,11 +240,12 @@ const Auth = () => {
                     placeholder="Enter your business name"
                     value={signUpForm.businessName}
                     onChange={(e) => setSignUpForm(prev => ({ ...prev, businessName: e.target.value }))}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || rateLimitInfo.isRateLimited}
                   />
                 </div>
                 {error && (
                   <Alert variant="destructive">
+                    {rateLimitInfo.isRateLimited && <Clock className="h-4 w-4" />}
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
@@ -225,17 +257,29 @@ const Auth = () => {
                 <Button 
                   onClick={handleSignUp} 
                   className="w-full" 
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || rateLimitInfo.isRateLimited}
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating account...
                     </>
+                  ) : rateLimitInfo.isRateLimited ? (
+                    <>
+                      <Clock className="mr-2 h-4 w-4" />
+                      Please wait...
+                    </>
                   ) : (
                     'Create Account'
                   )}
                 </Button>
+                
+                {rateLimitInfo.isRateLimited && rateLimitInfo.waitTime && (
+                  <div className="text-center text-sm text-gray-600">
+                    <p>Rate limit active. Try again in {rateLimitInfo.waitTime} seconds.</p>
+                    <p className="text-xs mt-1">This prevents spam and protects the service.</p>
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
