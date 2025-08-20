@@ -8,9 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Package, Clock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
   const { signIn, signUp, loading } = useAuth();
+  const { toast } = useToast();
   
   // Separate state for sign-in and sign-up forms
   const [signInForm, setSignInForm] = useState({ email: '', password: '' });
@@ -98,6 +100,13 @@ const Auth = () => {
     
     try {
       await signUp(signUpForm.email, signUpForm.password, signUpForm.businessName);
+      
+      // Show toast notification
+      toast({
+        title: "Account Created Successfully!",
+        description: "Please check your email for a confirmation link before signing in.",
+      });
+      
       setSuccess('Account created successfully! Please check your email for a confirmation link before signing in.');
       setSignUpForm({ email: '', password: '', businessName: '' });
       resetMessages();
