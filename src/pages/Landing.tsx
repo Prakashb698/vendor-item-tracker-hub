@@ -6,11 +6,14 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Landing = () => {
   const { signIn, signUp, loading } = useAuth();
+  const { toast } = useToast();
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [success, setSuccess] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -23,6 +26,7 @@ const Landing = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     
     try {
       if (isSignUp) {
@@ -31,6 +35,16 @@ const Landing = () => {
           return;
         }
         await signUp(formData.email, formData.password, formData.businessName);
+        
+        // Show toast notification
+        toast({
+          title: "Account Created Successfully!",
+          description: "Please check your email for a confirmation link before signing in.",
+        });
+        
+        setSuccess("Account created successfully! Please check your email for a confirmation link.");
+        setIsSignUp(false);
+        setFormData({ ...formData, password: "", confirmPassword: "" });
       } else {
         await signIn(formData.email, formData.password);
       }
@@ -237,6 +251,12 @@ const Landing = () => {
                   {error && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                       <p className="text-sm text-red-600">{error}</p>
+                    </div>
+                  )}
+                  
+                  {success && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-md">
+                      <p className="text-sm text-green-600">{success}</p>
                     </div>
                   )}
 
