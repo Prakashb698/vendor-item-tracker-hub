@@ -76,7 +76,11 @@ const Auth = () => {
   };
 
   const handleSignUp = async () => {
+    console.log('handleSignUp called');
+    console.log('Form data:', signUpForm);
+    
     if (!signUpForm.email || !signUpForm.password || !signUpForm.businessName) {
+      console.log('Missing fields validation failed');
       setError('Please fill in all fields');
       return;
     }
