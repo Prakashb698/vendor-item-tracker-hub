@@ -63,7 +63,8 @@ const Auth = () => {
       } else if (err.code === 'over_email_send_rate_limit' || err.message?.includes('rate limit')) {
         const waitTime = extractWaitTime(err.message) || 60;
         setRateLimitInfo({ isRateLimited: true, waitTime });
-        setError(`Too many login attempts. Please wait ${waitTime} seconds before trying again.`);
+        // Suppress noisy rate limit error message; keep UI disabled briefly
+        setError('');
       } else {
         setError(err.message || 'Failed to sign in. Please try again.');
       }
@@ -110,7 +111,8 @@ const Auth = () => {
       } else if (err.code === 'over_email_send_rate_limit' || err.message?.includes('rate limit') || err.message?.includes('56 seconds')) {
         const waitTime = extractWaitTime(err.message) || 60;
         setRateLimitInfo({ isRateLimited: true, waitTime });
-        setError(`Too many signup attempts. Please wait ${waitTime} seconds before trying again to avoid being blocked.`);
+        // Suppress noisy rate limit error message
+        setError('');
       } else if (err.code === 'signup_disabled') {
         setError("New signups are temporarily disabled. Please try again later.");
       } else {
@@ -274,12 +276,6 @@ const Auth = () => {
                   )}
                 </Button>
                 
-                {rateLimitInfo.isRateLimited && rateLimitInfo.waitTime && (
-                  <div className="text-center text-sm text-gray-600">
-                    <p>Rate limit active. Try again in {rateLimitInfo.waitTime} seconds.</p>
-                    <p className="text-xs mt-1">This prevents spam and protects the service.</p>
-                  </div>
-                )}
               </div>
             </TabsContent>
           </Tabs>

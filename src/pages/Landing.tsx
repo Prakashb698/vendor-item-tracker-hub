@@ -43,7 +43,8 @@ const Landing = () => {
       } else if (error.code === 'weak_password') {
         setError("Password must be at least 6 characters long.");
       } else if (error.code === 'over_email_send_rate_limit') {
-        setError("Too many attempts. Please wait a moment before trying again.");
+        // Suppress rate limit message for cleaner UX
+        setError("");
       } else if (error.code === 'invalid_credentials') {
         setError("Invalid email or password. For new accounts, please check your email for a confirmation link before signing in.");
       } else if (error.message === 'Invalid login credentials') {
