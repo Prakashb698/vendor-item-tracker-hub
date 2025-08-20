@@ -103,6 +103,7 @@ const Auth = () => {
     setRateLimitInfo({ isRateLimited: false });
     
     try {
+      const newEmail = signUpForm.email;
       await signUp(signUpForm.email, signUpForm.password, signUpForm.businessName);
       
       // Show toast notification
@@ -112,8 +113,9 @@ const Auth = () => {
       });
       
       setSuccess('Account created successfully! Please check your email for a confirmation link before signing in.');
+      setActiveTab('signin');
+      setSignInForm({ email: newEmail, password: '' });
       setSignUpForm({ email: '', password: '', businessName: '' });
-      resetMessages();
     } catch (err: any) {
       console.error('Authentication error:', err);
       
